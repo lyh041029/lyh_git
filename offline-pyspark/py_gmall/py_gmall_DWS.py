@@ -14,6 +14,7 @@ date = "20250717"
 
 spark.sql("use gmall_dws;")
 
+
 #------------------------------------------------ dws_trade_user_sku_order_1d
 spark.sql(f"""
     WITH od AS (
@@ -175,7 +176,7 @@ from
     (
         select
             user_id,
-            coupon_id,
+            coupon_id, 
             count(*) used_count
         from gmall_dwd.dwd_tool_coupon_used_inc
         where dt={date}

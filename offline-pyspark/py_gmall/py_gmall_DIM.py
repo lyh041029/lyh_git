@@ -294,3 +294,5 @@ select
     '99991231' end_date
 from gmall.ods_user_info;
 """).show()
+
+
