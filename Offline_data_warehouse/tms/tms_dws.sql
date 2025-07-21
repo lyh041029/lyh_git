@@ -1,8 +1,8 @@
-create database if not exists tms_dws;
-
 use tms_dws;
 
--- 10.1.1 交易域机构货物类型粒度下单 1 日汇总表 ------------------------------------------------------------------------------------------
+
+
+-- 10.1.1 交易域机构货物类型粒度下单 1 日汇总表
 drop table if exists dws_trade_org_cargo_type_order_1d;
 create external table dws_trade_org_cargo_type_order_1d(
                                                            `org_id` bigint comment '机构ID',
@@ -18,6 +18,8 @@ create external table dws_trade_org_cargo_type_order_1d(
     stored as orc
     location '/warehouse/tms/dws/dws_trade_org_cargo_type_order_1d'
     tblproperties('orc.compress' = 'snappy');
+
+
 
 set hive.exec.dynamic.partition.mode=nonstrict;
 insert overwrite table dws_trade_org_cargo_type_order_1d
@@ -65,7 +67,7 @@ from (select org_id,
                    org_name,
                    region_id
             from tms_dim.dim_organ_full
-            where dt = '2023-01-10') org
+            where dt = '20250718') org
            on distinct_detail.sender_district_id = org.region_id
       group by org_id,
                org_name,
@@ -77,13 +79,15 @@ from (select org_id,
     select id,
            name
     from tms_dim.dim_region_full
-    where dt = '2023-01-10'
+    where dt = '20250718'
 ) region on city_id = region.id;
 
-select *
-from dws_trade_org_cargo_type_order_1d;
 
--- 10.1.2 物流域转运站粒度揽收 1 日汇总表 ------------------------------------------------------------------------------------------
+select * from dws_trade_org_cargo_type_order_1d;
+
+
+//10.1.2 物流域转运站粒度揽收 1 日汇总表
+
 drop table if exists dws_trans_org_receive_1d;
 create external table dws_trans_org_receive_1d(
                                                   `org_id` bigint comment '转运站ID',
@@ -99,6 +103,9 @@ create external table dws_trans_org_receive_1d(
     stored as orc
     location '/warehouse/tms/dws/dws_trans_org_receive_1d/'
     tblproperties ('orc.compress'='snappy');
+
+
+
 
 set hive.exec.dynamic.partition.mode=nonstrict;
 insert overwrite table dws_trans_org_receive_1d
@@ -131,27 +138,27 @@ from (select order_id,
                    org_name,
                    region_id
             from tms_dim.dim_organ_full
-            where dt = '2023-01-10') organ
+            where dt = '20250718') organ
            on detail.sender_district_id = organ.region_id
                left join
            (select id,
                    parent_id
             from tms_dim.dim_region_full
-            where dt = '2023-01-10') district
+            where dt = '20250718') district
            on region_id = district.id
                left join
            (select id   city_id,
                    name city_name,
                    parent_id
             from tms_dim.dim_region_full
-            where dt = '2023-01-10') city
+            where dt = '20250718') city
            on district.parent_id = city_id
                left join
            (select id   province_id,
                    name province_name,
                    parent_id
             from tms_dim.dim_region_full
-            where dt = '2023-01-10') province
+            where dt = '20250718') province
            on city.parent_id = province_id
       group by order_id,
                org_id,
@@ -169,10 +176,16 @@ group by org_id,
          province_name,
          dt;
 
-select *
-from dws_trans_org_receive_1d;
 
--- 10.1.3 物流域发单 1 日汇总表 ------------------------------------------------------------------------------------------
+
+select * from dws_trans_org_receive_1d;
+
+
+
+
+//10.1.3 物流域发单 1 日汇总表
+
+
 drop table if exists dws_trans_dispatch_1d;
 create external table dws_trans_dispatch_1d(
                                                `order_count` bigint comment '发单总数',
@@ -182,6 +195,7 @@ create external table dws_trans_dispatch_1d(
     stored as orc
     location '/warehouse/tms/dws/dws_trans_dispatch_1d/'
     tblproperties('orc.compress'='snappy');
+
 
 set hive.exec.dynamic.partition.mode=nonstrict;
 insert overwrite table dws_trans_dispatch_1d
@@ -197,10 +211,13 @@ from (select order_id,
                dt) distinct_info
 group by dt;
 
-select *
-from dws_trans_dispatch_1d;
 
--- 10.1.4 物流域机构卡车类别粒度运输最近 1 日汇总表 ------------------------------------------------------------------------------------------
+select * from dws_trans_dispatch_1d;
+
+
+
+//10.1.4 物流域机构卡车类别粒度运输最近 1 日汇总表
+
 drop table if exists dws_trans_org_truck_model_type_trans_finish_1d;
 create external table dws_trans_org_truck_model_type_trans_finish_1d(
                                                                         `org_id` bigint comment '机构ID',
@@ -215,6 +232,7 @@ create external table dws_trans_org_truck_model_type_trans_finish_1d(
     stored as orc
     location '/warehouse/tms/dws/dws_trans_org_truck_model_type_trans_finish_1d/'
     tblproperties('orc.compress'='snappy');
+
 
 set hive.exec.dynamic.partition.mode=nonstrict;
 insert overwrite table dws_trans_org_truck_model_type_trans_finish_1d
@@ -240,7 +258,7 @@ from (select id,
              truck_model_type,
              truck_model_type_name
       from tms_dim.dim_truck_full
-      where dt = '2023-01-10') truck_info
+      where dt = '20250718') truck_info
      on trans_finish.truck_id = truck_info.id
 group by org_id,
          org_name,
@@ -248,10 +266,13 @@ group by org_id,
          truck_model_type_name,
          dt;
 
-select *
-from dws_trans_org_truck_model_type_trans_finish_1d;
 
--- 10.1.5 物流域转运站粒度派送成功 1 日汇总表 ------------------------------------------------------------------------------------------
+select * from dws_trans_org_truck_model_type_trans_finish_1d;
+
+
+
+-- 10.1.5 物流域转运站粒度派送成功 1 日汇总表
+
 drop table if exists dws_trans_org_deliver_suc_1d;
 create external table dws_trans_org_deliver_suc_1d(
                                                       `org_id` bigint comment '转运站ID',
@@ -266,6 +287,8 @@ create external table dws_trans_org_deliver_suc_1d(
     stored as orc
     location '/warehouse/tms/dws/dws_trans_org_deliver_suc_1d/'
     tblproperties('orc.compress'='snappy');
+
+
 
 set hive.exec.dynamic.partition.mode=nonstrict;
 insert overwrite table dws_trans_org_deliver_suc_1d
@@ -288,26 +311,26 @@ from (select order_id,
              org_name,
              region_id district_id
       from tms_dim.dim_organ_full
-      where dt = '2023-01-10') organ
+      where dt = '20250718') organ
      on detail.receiver_district_id = organ.district_id
          left join
      (select id,
              parent_id city_id
       from tms_dim.dim_region_full
-      where dt = '2023-01-10') district
+      where dt = '20250718') district
      on district_id = district.id
          left join
      (select id,
              name,
              parent_id province_id
       from tms_dim.dim_region_full
-      where dt = '2023-01-10') city
+      where dt = '20250718') city
      on city_id = city.id
          left join
      (select id,
              name
       from tms_dim.dim_region_full
-      where dt = '2023-01-10') province
+      where dt = '20250718') province
      on province_id = province.id
 group by org_id,
          org_name,
@@ -317,10 +340,12 @@ group by org_id,
          province.name,
          dt;
 
-select *
-from dws_trans_org_deliver_suc_1d;
 
--- 10.1.6 物流域机构粒度分拣 1 日汇总表 ------------------------------------------------------------------------------------------
+select * from dws_trans_org_deliver_suc_1d;
+
+
+-- 10.1.6 物流域机构粒度分拣 1 日汇总表
+
 drop table if exists dws_trans_org_sort_1d;
 create external table dws_trans_org_sort_1d(
                                                `org_id` bigint comment '机构ID',
@@ -335,6 +360,7 @@ create external table dws_trans_org_sort_1d(
     stored as orc
     location '/warehouse/tms/dws/dws_trans_org_sort_1d/'
     tblproperties('orc.compress'='snappy');
+
 
 set hive.exec.dynamic.partition.mode=nonstrict;
 insert overwrite table dws_trans_org_sort_1d
@@ -358,34 +384,41 @@ from (select org_id,
              org_level,
              region_id
       from tms_dim.dim_organ_full
-      where dt = '2023-01-10') org
+      where dt = '20250718') org
      on org_id = org.id
          left join
      (select id,
              name,
              parent_id
       from tms_dim.dim_region_full
-      where dt = '2023-01-10') city_for_level1
+      where dt = '20250718') city_for_level1
      on region_id = city_for_level1.id
          left join
      (select id,
              name,
              parent_id
       from tms_dim.dim_region_full
-      where dt = '2023-01-10') province_for_level1
+      where dt = '20250718') province_for_level1
      on city_for_level1.parent_id = province_for_level1.id
          left join
      (select id,
              name,
              parent_id
       from tms_dim.dim_region_full
-      where dt = '2023-01-10') province_for_level2
+      where dt = '20250718') province_for_level2
      on province_for_level1.parent_id = province_for_level2.id;
 
-select *
-from dws_trans_org_sort_1d;
 
--- 10.2.1 交易域机构货物类型粒度下单 n 日汇总表 ------------------------------------------------------------------------------------------
+select * from dws_trans_org_sort_1d;
+
+
+
+
+
+
+-- 10.2.1 交易域机构货物类型粒度下单 n 日汇总表
+
+
 drop table if exists dws_trade_org_cargo_type_order_nd;
 create external table dws_trade_org_cargo_type_order_nd(
                                                            `org_id` bigint comment '机构ID',
@@ -403,8 +436,9 @@ create external table dws_trade_org_cargo_type_order_nd(
     location '/warehouse/tms/dws/dws_trade_org_cargo_type_order_nd'
     tblproperties('orc.compress' = 'snappy');
 
+
 insert overwrite table dws_trade_org_cargo_type_order_nd
-    partition (dt = '2023-01-10')
+    partition (dt = '20250718')
 select org_id,
        org_name,
        city_id,
@@ -416,7 +450,7 @@ select org_id,
        sum(order_amount) order_amount
 from dws_trade_org_cargo_type_order_1d lateral view
     explode(array(7, 30)) tmp as recent_days
-where dt >= date_add('2023-01-10', -recent_days + 1)
+where dt >= date_add('20250718', -recent_days + 1)
 group by org_id,
          org_name,
          city_id,
@@ -425,10 +459,13 @@ group by org_id,
          cargo_type_name,
          recent_days;
 
-select *
-from dws_trade_org_cargo_type_order_nd;
 
--- 10.2.2 物流域转运站粒度揽收 n 日汇总表 ------------------------------------------------------------------------------------------
+select * from dws_trade_org_cargo_type_order_nd;
+
+
+
+-- 10.2.2 物流域转运站粒度揽收 n 日汇总表
+
 drop table if exists dws_trans_org_receive_nd;
 create external table dws_trans_org_receive_nd(
                                                   `org_id` bigint comment '转运站ID',
@@ -446,8 +483,9 @@ create external table dws_trans_org_receive_nd(
     location '/warehouse/tms/dws/dws_trans_org_receive_nd/'
     tblproperties ('orc.compress'='snappy');
 
+
 insert overwrite table dws_trans_org_receive_nd
-    partition (dt = '2023-01-10')
+    partition (dt = '20250718')
 select org_id,
        org_name,
        city_id,
@@ -459,7 +497,7 @@ select org_id,
        sum(order_amount) order_amount
 from dws_trans_org_receive_1d
          lateral view explode(array(7, 30)) tmp as recent_days
-where dt >= date_add('2023-01-10', -recent_days + 1)
+where dt >= date_add('20250718', -recent_days + 1)
 group by org_id,
          org_name,
          city_id,
@@ -468,10 +506,13 @@ group by org_id,
          province_name,
          recent_days;
 
-select *
-from dws_trans_org_receive_nd;
 
--- 10.2.3 物流域发单 n 日汇总表 ------------------------------------------------------------------------------------------
+select * from dws_trans_org_receive_nd;
+
+
+
+-- 10.2.3 物流域发单 n 日汇总表
+
 drop table if exists dws_trans_dispatch_nd;
 create external table dws_trans_dispatch_nd(
                                                `recent_days` tinyint comment '最近天数',
@@ -483,20 +524,25 @@ create external table dws_trans_dispatch_nd(
     location '/warehouse/tms/dws/dws_trans_dispatch_nd/'
     tblproperties('orc.compress'='snappy');
 
+
 insert overwrite table dws_trans_dispatch_nd
-    partition (dt = '2023-01-10')
+    partition (dt = '20250718')
 select recent_days,
        sum(order_count)  order_count,
        sum(order_amount) order_amount
 from dws_trans_dispatch_1d lateral view
     explode(array(7, 30)) tmp as recent_days
-where dt >= date_add('2023-01-10', -recent_days + 1)
+where dt >= date_add('20250718', -recent_days + 1)
 group by recent_days;
 
-select *
-from dws_trans_dispatch_nd;
 
--- 10.2.4 物流域班次粒度转运完成最近 n 日汇总表 -------------------------------------------------------------------------------------------- 10.2.5 物流域转运站粒度派送成功 n 日汇总表 ------------------------------------------------------------------------------------------
+select * from dws_trans_dispatch_nd;
+
+
+
+
+-- 10.2.4 物流域班次粒度转运完成最近 n 日汇总表
+
 drop table if exists dws_trans_shift_trans_finish_nd;
 create external table dws_trans_shift_trans_finish_nd(
                                                          `shift_id` bigint comment '班次ID',
@@ -524,8 +570,10 @@ create external table dws_trans_shift_trans_finish_nd(
     location '/warehouse/tms/dws/dws_trans_shift_trans_finish_nd/'
     tblproperties('orc.compress'='snappy');
 
+
+
 insert overwrite table dws_trans_shift_trans_finish_nd
-    partition (dt = '2023-01-10')
+    partition (dt = '20250718')
 select shift_id,
        if(org_level = 1, first.region_id, city.id)     city_id,
        if(org_level = 1, first.region_name, city.name) city_name,
@@ -562,7 +610,7 @@ from (select recent_days,
              sum(if(actual_end_time > estimate_end_time, 1, 0)) trans_finish_delay_count
       from tms_dwd.dwd_trans_trans_finish_inc lateral view
           explode(array(7, 30)) tmp as recent_days
-      where dt >= date_add('2023-01-10', -recent_days + 1)
+      where dt >= date_add('20250718', -recent_days + 1)
       group by recent_days,
                shift_id,
                line_id,
@@ -579,41 +627,44 @@ from (select recent_days,
              region_id,
              region_name
       from tms_dim.dim_organ_full
-      where dt = '2023-01-10'
+      where dt = '20250718'
      ) first
      on aggregated.org_id = first.id
          left join
      (select id,
              parent_id
       from tms_dim.dim_region_full
-      where dt = '2023-01-10'
+      where dt = '20250718'
      ) parent
      on first.region_id = parent.id
          left join
      (select id,
              name
       from tms_dim.dim_region_full
-      where dt = '2023-01-10'
+      where dt = '20250718'
      ) city
      on parent.parent_id = city.id
          left join
      (select id,
              line_name
       from tms_dim.dim_shift_full
-      where dt = '2023-01-10') for_line_name
+      where dt = '20250718') for_line_name
      on shift_id = for_line_name.id
          left join (
     select id,
            truck_model_type,
            truck_model_type_name
     from tms_dim.dim_truck_full
-    where dt = '2023-01-10'
+    where dt = '20250718'
 ) truck_info on truck_id = truck_info.id;
 
-select *
-from dws_trans_shift_trans_finish_nd;
 
--- 10.2.5 物流域转运站粒度派送成功 n 日汇总表 ------------------------------------------------------------------------------------------
+select * from  dws_trans_shift_trans_finish_nd;
+
+
+
+-- 10.2.5 物流域转运站粒度派送成功 n 日汇总表
+
 drop table if exists dws_trans_org_deliver_suc_nd;
 create external table dws_trans_org_deliver_suc_nd(
                                                       `org_id` bigint comment '转运站ID',
@@ -630,8 +681,9 @@ create external table dws_trans_org_deliver_suc_nd(
     location '/warehouse/tms/dws/dws_trans_org_deliver_suc_nd/'
     tblproperties('orc.compress'='snappy');
 
+
 insert overwrite table dws_trans_org_deliver_suc_nd
-    partition (dt = '2023-01-10')
+    partition (dt = '20250718')
 select org_id,
        org_name,
        city_id,
@@ -642,7 +694,7 @@ select org_id,
        sum(order_count) order_count
 from dws_trans_org_deliver_suc_1d lateral view
     explode(array(7, 30)) tmp as recent_days
-where dt >= date_add('2023-01-10', -recent_days + 1)
+where dt >= date_add('20250718', -recent_days + 1)
 group by org_id,
          org_name,
          city_id,
@@ -651,10 +703,12 @@ group by org_id,
          province_name,
          recent_days;
 
-select *
-from dws_trans_org_deliver_suc_nd;
 
--- 10.2.6 物流域机构粒度分拣 n 日汇总表 ------------------------------------------------------------------------------------------
+select * from dws_trans_org_deliver_suc_nd;
+
+
+-- 10.2.6 物流域机构粒度分拣 n 日汇总表
+
 drop table if exists dws_trans_org_sort_nd;
 create external table dws_trans_org_sort_nd(
                                                `org_id` bigint comment '机构ID',
@@ -671,9 +725,10 @@ create external table dws_trans_org_sort_nd(
     location '/warehouse/tms/dws/dws_trans_org_sort_nd/'
     tblproperties('orc.compress'='snappy');
 
+
 set hive.exec.dynamic.partition.mode=nonstrict;
 insert overwrite table dws_trans_org_sort_nd
-    partition (dt = '2023-01-10')
+    partition (dt = '20250718')
 select org_id,
        org_name,
        city_id,
@@ -684,7 +739,7 @@ select org_id,
        sum(sort_count) sort_count
 from dws_trans_org_sort_1d lateral view
     explode(array(7, 30)) tmp as recent_days
-where dt >= date_add('2023-01-10', -recent_days + 1)
+where dt >= date_add('20250718', -recent_days + 1)
 group by org_id,
          org_name,
          city_id,
@@ -693,10 +748,13 @@ group by org_id,
          province_name,
          recent_days;
 
-select *
-from dws_trans_org_sort_nd;
 
--- 10.3.1 物流域发单历史至今汇总表 ------------------------------------------------------------------------------------------
+select * from dws_trans_org_sort_nd;
+
+
+
+-- 10.3.1 物流域发单历史至今汇总表
+
 drop table if exists dws_trans_dispatch_td;
 create external table dws_trans_dispatch_td(
                                                `order_count` bigint comment '发单数',
@@ -707,16 +765,21 @@ create external table dws_trans_dispatch_td(
     location '/warehouse/tms/dws/dws_trans_dispatch_td'
     tblproperties('orc.compress'='snappy');
 
+
 insert overwrite table dws_trans_dispatch_td
-    partition (dt = '2023-01-10')
+    partition (dt = '20250718')
 select sum(order_count)  order_count,
        sum(order_amount) order_amount
 from dws_trans_dispatch_1d;
 
-select *
-from dws_trans_dispatch_td;
 
--- 10.3.2 物流域转运完成历史至今汇总表 ------------------------------------------------------------------------------------------
+select * from dws_trans_dispatch_td;
+
+
+
+
+-- 10.3.2 物流域转运完成历史至今汇总表
+
 drop table if exists dws_trans_bound_finish_td;
 create external table dws_trans_bound_finish_td(
                                                    `order_count` bigint comment '发单数',
@@ -727,8 +790,10 @@ create external table dws_trans_bound_finish_td(
     location 'warehouse/tms/dws/dws_trans_bound_finish_td'
     tblproperties('orc.compress'='snappy');
 
+
+
 insert overwrite table dws_trans_bound_finish_td
-    partition (dt = '2023-01-10')
+    partition (dt = '20250718')
 select count(order_id)   order_count,
        sum(order_amount) order_amount
 from (select order_id,
@@ -736,5 +801,5 @@ from (select order_id,
       from tms_dwd.dwd_trans_bound_finish_detail_inc
       group by order_id) distinct_info;
 
-select *
-from dws_trans_bound_finish_td;
+
+select * from dws_trans_bound_finish_td;

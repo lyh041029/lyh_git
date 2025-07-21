@@ -1,17 +1,20 @@
-create database if not exists tms_dwd;
-
 use tms_dwd;
 
--- 9.1 交易域下单事务事实表 ---------------------------------------------------------------------------------------------
+
+
+
+-- 9.1 交易域下单事务事实表
+-- dwd_trade_order_detail_inc
+
 drop table if exists dwd_trade_order_detail_inc;
 create external table dwd_trade_order_detail_inc(
                                                     `id` bigint comment '运单明细ID',
                                                     `order_id` string COMMENT '运单ID',
                                                     `cargo_type` string COMMENT '货物类型ID',
                                                     `cargo_type_name` string COMMENT '货物类型名称',
-                                                    `volume_length` bigint COMMENT '长cm',
-                                                    `volume_width` bigint COMMENT '宽cm',
-                                                    `volume_height` bigint COMMENT '高cm',
+                                                    `volumn_length` bigint COMMENT '长cm',
+                                                    `volumn_width` bigint COMMENT '宽cm',
+                                                    `volumn_height` bigint COMMENT '高cm',
                                                     `weight` decimal(16,2) COMMENT '重量 kg',
                                                     `order_time` string COMMENT '下单时间',
                                                     `order_no` string COMMENT '运单号',
@@ -31,7 +34,7 @@ create external table dwd_trade_order_detail_inc(
                                                     `sender_district_id` string COMMENT '发件人区县id',
                                                     `sender_name` string COMMENT '发件人姓名',
                                                     `cargo_num` bigint COMMENT '货物个数',
-                                                      `amount` decimal(16,2) COMMENT '金额',
+                                                    `amount` decimal(16,2) COMMENT '金额',
                                                     `estimate_arrive_time` string COMMENT '预计到达时间',
                                                     `distance` decimal(16,2) COMMENT '距离，单位：公里',
                                                     `ts` bigint COMMENT '时间戳'
@@ -40,6 +43,7 @@ create external table dwd_trade_order_detail_inc(
     stored as orc
     location '/warehouse/tms/dwd/dwd_trade_order_detail_inc'
     tblproperties('orc.compress' = 'snappy');
+
 
 set hive.exec.dynamic.partition.mode=nonstrict;
 insert overwrite table dwd_trade_order_detail_inc
@@ -75,19 +79,19 @@ select cargo.id,
        distance,
        dt,
        date_format(order_time, 'yyyy-MM-dd') dt
-from (select after1.id,
-             after1.order_id,
-             after1.cargo_type,
-             after1.volume_length,
-             after1.volume_width,
-             after1.volume_height,
-             after1.weight,
-             concat(substr(after1.create_time, 1, 10), ' ', substr(after1.create_time, 12, 8)) order_time,
+from (select ooc.id,
+             ooc.order_id,
+             ooc.cargo_type,
+             ooc.volume_length,
+             ooc.volume_width,
+             ooc.volume_height,
+             ooc.weight,
+             concat(substr(ooc.create_time, 1, 10), ' ', substr(ooc.create_time, 12, 8)) order_time,
              dt
-      from tms.ods_order_cargo after1
+      from tms.ods_order_cargo ooc
       where dt = '20250718'
-        and after1.is_deleted = '0') cargo
-         join
+        and ooc.is_deleted = '0') cargo
+         left join
      (select after.id,
              after.order_no,
              after.status,
@@ -135,10 +139,15 @@ from (select after1.id,
         and is_deleted = '0') dic_for_collect_type
      on info.collect_type = cast(dic_for_cargo_type.id as string);
 
-select *
-from dwd_trade_order_detail_inc;
 
--- 9.2 交易域支付成功事务事实表 ---------------------------------------------------------------------------------------------
+select * from dwd_trade_order_detail_inc;
+
+
+
+-- 9.2 交易域支付成功事务事实表
+-- dwd_trade_pay_suc_detail_inc
+
+
 drop table if exists dwd_trade_pay_suc_detail_inc;
 create external table dwd_trade_pay_suc_detail_inc(
                                                       `id` bigint comment '运单明细ID',
@@ -179,6 +188,7 @@ create external table dwd_trade_pay_suc_detail_inc(
     location '/warehouse/tms/dwd/dwd_trade_pay_suc_detail_inc'
     tblproperties('orc.compress' = 'snappy');
 
+
 set hive.exec.dynamic.partition.mode=nonstrict;
 insert overwrite table dwd_trade_pay_suc_detail_inc
     partition (dt)
@@ -215,17 +225,17 @@ select cargo.id,
        distance,
        dt,
        date_format(payment_time, 'yyyy-MM-dd') dt
-from (select after1.id,
-             after1.order_id,
-             after1.cargo_type,
-             after1.volume_length,
-             after1.volume_width,
-             after1.volume_height,
-             after1.weight,
+from (select after.id,
+             after.order_id,
+             after.cargo_type,
+             after.volume_length,
+             after.volume_width,
+             after.volume_height,
+             after.weight,
              dt
-      from tms.ods_order_cargo after1
+      from tms.ods_order_cargo after
       where dt = '20250718'
-        and after1.is_deleted = '0') cargo
+        and after.is_deleted = '0') cargo
          join
      (select after.id,
              after.order_no,
@@ -285,10 +295,14 @@ from (select after1.id,
         and is_deleted = '0') dic_for_payment_type
      on info.payment_type = cast(dic_for_payment_type.id as string);
 
-select *
-from dwd_trade_pay_suc_detail_inc;
 
--- 9.3 交易域取消运单事务事实表 ---------------------------------------------------------------------------------------------
+select * from dwd_trade_pay_suc_detail_inc;
+
+
+
+-- 9.3 交易域取消运单事务事实表
+-- dwd_trade_order_cancel_detail_inc
+
 drop table if exists dwd_trade_order_cancel_detail_inc;
 create external table dwd_trade_order_cancel_detail_inc(
                                                            `id` bigint comment '运单明细ID',
@@ -326,6 +340,8 @@ create external table dwd_trade_order_cancel_detail_inc(
     stored as orc
     location '/warehouse/tms/dwd/dwd_trade_order_cancel_detail_inc'
     tblproperties('orc.compress' = 'snappy');
+
+
 
 set hive.exec.dynamic.partition.mode=nonstrict;
 insert overwrite table dwd_trade_order_cancel_detail_inc
@@ -398,7 +414,7 @@ from (select after.id,
       from tms.ods_order_info after
       where dt = '20250718'
         and after.is_deleted = '0'
-        and after.status = '60999') info
+     ) info
      on cargo.order_id = info.id
          left join
      (select id,
@@ -422,19 +438,22 @@ from (select after.id,
         and is_deleted = '0') dic_for_collect_type
      on info.collect_type = cast(dic_for_cargo_type.id as string);
 
-select *
-from dwd_trade_order_cancel_detail_inc;
 
--- 9.4 物流域揽收事务事实表 ---------------------------------------------------------------------------------------------
+select * from dwd_trade_order_cancel_detail_inc;
+
+
+
+-- 9.4 物流域揽收事务事实表
+-- dwd_trans_receive_detail_inc
 drop table if exists dwd_trans_receive_detail_inc;
 create external table dwd_trans_receive_detail_inc(
                                                       `id` bigint comment '运单明细ID',
                                                       `order_id` string COMMENT '运单ID',
                                                       `cargo_type` string COMMENT '货物类型ID',
                                                       `cargo_type_name` string COMMENT '货物类型名称',
-                                                      `volume_length` bigint COMMENT '长cm',
-                                                      `volume_width` bigint COMMENT '宽cm',
-                                                      `volume_height` bigint COMMENT '高cm',
+                                                      `volumn_length` bigint COMMENT '长cm',
+                                                      `volumn_width` bigint COMMENT '宽cm',
+                                                      `volumn_height` bigint COMMENT '高cm',
                                                       `weight` decimal(16,2) COMMENT '重量 kg',
                                                       `receive_time` string COMMENT '揽收时间',
                                                       `order_no` string COMMENT '运单号',
@@ -465,6 +484,7 @@ create external table dwd_trans_receive_detail_inc(
     stored as orc
     location '/warehouse/tms/dwd/dwd_trans_receive_detail_inc'
     tblproperties('orc.compress' = 'snappy');
+
 
 set hive.exec.dynamic.partition.mode=nonstrict;
 insert overwrite table dwd_trans_receive_detail_inc
@@ -573,19 +593,23 @@ from (select after.id,
         and is_deleted = '0') dic_for_payment_type
      on info.payment_type = cast(dic_for_payment_type.id as string);
 
-select *
-from dwd_trans_receive_detail_inc;
 
--- 9.5 物流域发单事务事实表 ---------------------------------------------------------------------------------------------
+select * from dwd_trans_receive_detail_inc;
+
+
+-- 9.5 物流域发单事务事实表
+-- dwd_trans_dispatch_detail_inc
+
+
 drop table if exists dwd_trans_dispatch_detail_inc;
 create external table dwd_trans_dispatch_detail_inc(
                                                        `id` bigint comment '运单明细ID',
                                                        `order_id` string COMMENT '运单ID',
                                                        `cargo_type` string COMMENT '货物类型ID',
                                                        `cargo_type_name` string COMMENT '货物类型名称',
-                                                       `volume_length` bigint COMMENT '长cm',
-                                                       `volume_width` bigint COMMENT '宽cm',
-                                                       `volume_height` bigint COMMENT '高cm',
+                                                       `volumn_length` bigint COMMENT '长cm',
+                                                       `volumn_width` bigint COMMENT '宽cm',
+                                                       `volumn_height` bigint COMMENT '高cm',
                                                        `weight` decimal(16,2) COMMENT '重量 kg',
                                                        `dispatch_time` string COMMENT '发单时间',
                                                        `order_no` string COMMENT '运单号',
@@ -616,6 +640,8 @@ create external table dwd_trans_dispatch_detail_inc(
     stored as orc
     location '/warehouse/tms/dwd/dwd_trans_dispatch_detail_inc'
     tblproperties('orc.compress' = 'snappy');
+
+
 
 set hive.exec.dynamic.partition.mode=nonstrict;
 insert overwrite table dwd_trans_dispatch_detail_inc
@@ -700,45 +726,47 @@ from (select after.id,
          left join
      (select id,
              name
-      from tms.ods_base_dic 
+      from tms.ods_base_dic
       where dt = '20250718'
         and is_deleted = '0') dic_for_cargo_type
      on cargo.cargo_type = cast(dic_for_cargo_type.id as string)
          left join
      (select id,
              name
-      from tms.ods_base_dic 
+      from tms.ods_base_dic
       where dt = '20250718'
         and is_deleted = '0') dic_for_status
      on info.status = cast(dic_for_status.id as string)
          left join
      (select id,
              name
-      from tms.ods_base_dic 
+      from tms.ods_base_dic
       where dt = '20250718'
         and is_deleted = '0') dic_for_collect_type
      on info.collect_type = cast(dic_for_cargo_type.id as string)
          left join
      (select id,
              name
-      from tms.ods_base_dic 
+      from tms.ods_base_dic
       where dt = '20250718'
         and is_deleted = '0') dic_for_payment_type
      on info.payment_type = cast(dic_for_payment_type.id as string);
 
-select *
-from dwd_trans_dispatch_detail_inc;
 
--- 9.6 物流域转运完成事务事实表 ---------------------------------------------------------------------------------------------
+select * from dwd_trans_dispatch_detail_inc;
+
+
+-- 9.6 物流域转运完成事务事实表
+-- dwd_trans_bound_finish_detail_inc
 drop table if exists dwd_trans_bound_finish_detail_inc;
 create external table dwd_trans_bound_finish_detail_inc(
                                                            `id` bigint comment '运单明细ID',
                                                            `order_id` string COMMENT '运单ID',
                                                            `cargo_type` string COMMENT '货物类型ID',
                                                            `cargo_type_name` string COMMENT '货物类型名称',
-                                                           `volume_length` bigint COMMENT '长cm',
-                                                           `volume_width` bigint COMMENT '宽cm',
-                                                           `volume_height` bigint COMMENT '高cm',
+                                                           `volumn_length` bigint COMMENT '长cm',
+                                                           `volumn_width` bigint COMMENT '宽cm',
+                                                           `volumn_height` bigint COMMENT '高cm',
                                                            `weight` decimal(16,2) COMMENT '重量 kg',
                                                            `bound_finish_time` string COMMENT '转运完成时间',
                                                            `order_no` string COMMENT '运单号',
@@ -769,6 +797,8 @@ create external table dwd_trans_bound_finish_detail_inc(
     stored as orc
     location '/warehouse/tms/dwd/dwd_trans_bound_finish_detail_inc'
     tblproperties('orc.compress' = 'snappy');
+
+
 
 set hive.exec.dynamic.partition.mode=nonstrict;
 insert overwrite table dwd_trans_bound_finish_detail_inc
@@ -842,57 +872,56 @@ from (select after.id,
              after.distance,
              concat(substr(after.update_time, 1, 10), ' ', substr(after.update_time, 12, 8)) bound_finish_time
       from tms.ods_order_info after
-      where dt = '20250718'
-        and after.is_deleted = '0'
-        and after.status <> '60010'
-        and after.status <> '60020'
-        and after.status <> '60030'
-        and after.status <> '60040'
-        and after.status <> '60050'
-        and after.status <> '60999') info
+      where dt = '20250718') info
      on cargo.order_id = info.id
          left join
      (select id,
              name
-      from tms.ods_base_dic 
+      from tms.ods_base_dic
       where dt = '20250718'
         and is_deleted = '0') dic_for_cargo_type
      on cargo.cargo_type = cast(dic_for_cargo_type.id as string)
          left join
      (select id,
              name
-      from tms.ods_base_dic 
+      from tms.ods_base_dic
       where dt = '20250718'
         and is_deleted = '0') dic_for_status
      on info.status = cast(dic_for_status.id as string)
          left join
      (select id,
              name
-      from tms.ods_base_dic 
+      from tms.ods_base_dic
       where dt = '20250718'
         and is_deleted = '0') dic_for_collect_type
      on info.collect_type = cast(dic_for_cargo_type.id as string)
          left join
      (select id,
              name
-      from tms.ods_base_dic 
+      from tms.ods_base_dic
       where dt = '20250718'
         and is_deleted = '0') dic_for_payment_type
      on info.payment_type = cast(dic_for_payment_type.id as string);
 
-select *
-from dwd_trans_bound_finish_detail_inc;
 
--- 9.7 物流域派送成功事务事实表 ---------------------------------------------------------------------------------------------
+select * from dwd_trans_bound_finish_detail_inc;
+
+
+
+
+-- 9.7 物流域派送成功事务事实表
+-- dwd_trans_deliver_suc_detail_inc
+
+
 drop table if exists dwd_trans_deliver_suc_detail_inc;
 create external table dwd_trans_deliver_suc_detail_inc(
                                                           `id` bigint comment '运单明细ID',
                                                           `order_id` string COMMENT '运单ID',
                                                           `cargo_type` string COMMENT '货物类型ID',
                                                           `cargo_type_name` string COMMENT '货物类型名称',
-                                                          `volume_length` bigint COMMENT '长cm',
-                                                          `volume_width` bigint COMMENT '宽cm',
-                                                          `volume_height` bigint COMMENT '高cm',
+                                                          `volumn_length` bigint COMMENT '长cm',
+                                                          `volumn_width` bigint COMMENT '宽cm',
+                                                          `volumn_height` bigint COMMENT '高cm',
                                                           `weight` decimal(16,2) COMMENT '重量 kg',
                                                           `deliver_suc_time` string COMMENT '派送成功时间',
                                                           `order_no` string COMMENT '运单号',
@@ -923,6 +952,7 @@ create external table dwd_trans_deliver_suc_detail_inc(
     stored as orc
     location '/warehouse/tms/dwd/dwd_trans_deliver_suc_detail_inc'
     tblproperties('orc.compress' = 'snappy');
+
 
 set hive.exec.dynamic.partition.mode=nonstrict;
 insert overwrite table dwd_trans_deliver_suc_detail_inc
@@ -998,18 +1028,12 @@ from (select after.id,
       from tms.ods_order_info after
       where dt = '20250718'
         and after.is_deleted = '0'
-        and after.status <> '60010'
-        and after.status <> '60020'
-        and after.status <> '60030'
-        and after.status <> '60040'
-        and after.status <> '60050'
-        and after.status <> '60060'
-        and after.status <> '60999') info
+     ) info
      on cargo.order_id = info.id
          left join
      (select id,
              name
-      from tms.ods_base_dic 
+      from tms.ods_base_dic
       where dt = '20250718'
         and is_deleted = '0') dic_for_cargo_type
      on cargo.cargo_type = cast(dic_for_cargo_type.id as string)
@@ -1023,7 +1047,7 @@ from (select after.id,
          left join
      (select id,
              name
-      from tms.ods_base_dic 
+      from tms.ods_base_dic
       where dt = '20250718'
         and is_deleted = '0') dic_for_collect_type
      on info.collect_type = cast(dic_for_cargo_type.id as string)
@@ -1035,10 +1059,14 @@ from (select after.id,
         and is_deleted = '0') dic_for_payment_type
      on info.payment_type = cast(dic_for_payment_type.id as string);
 
-select *
-from dwd_trans_deliver_suc_detail_inc;
 
--- 9.8 物流域签收事务事实表 ---------------------------------------------------------------------------------------------
+select * from dwd_trans_deliver_suc_detail_inc;
+
+
+
+-- 9.8 物流域签收事务事实表
+-- dwd_trans_sign_detail_inc
+
 drop table if exists dwd_trans_sign_detail_inc;
 create external table dwd_trans_sign_detail_inc(
                                                    `id` bigint comment '运单明细ID',
@@ -1078,6 +1106,9 @@ create external table dwd_trans_sign_detail_inc(
     stored as orc
     location '/warehouse/tms/dwd/dwd_trans_sign_detail_inc'
     tblproperties('orc.compress' = 'snappy');
+
+
+
 
 set hive.exec.dynamic.partition.mode=nonstrict;
 insert overwrite table dwd_trans_sign_detail_inc
@@ -1153,14 +1184,7 @@ from (select after.id,
       from tms.ods_order_info after
       where dt = '20250718'
         and after.is_deleted = '0'
-        and after.status <> '60010'
-        and after.status <> '60020'
-        and after.status <> '60030'
-        and after.status <> '60040'
-        and after.status <> '60050'
-        and after.status <> '60060'
-        and after.status <> '60070'
-        and after.status <> '60999') info
+     ) info
      on cargo.order_id = info.id
          left join
      (select id,
@@ -1191,10 +1215,14 @@ from (select after.id,
         and is_deleted = '0') dic_for_payment_type
      on info.payment_type = cast(dic_for_payment_type.id as string);
 
-select *
-from dwd_trans_sign_detail_inc;
 
--- 9.9 交易域运单累积快照事实表 ---------------------------------------------------------------------------------------------
+select * from dwd_trans_sign_detail_inc;
+
+
+
+-- 9.9 交易域运单累积快照事实表
+-- dwd_trade_order_process_inc
+
 drop table if exists dwd_trade_order_process_inc;
 create external table dwd_trade_order_process_inc(
                                                      `id` bigint comment '运单明细ID',
@@ -1237,6 +1265,8 @@ create external table dwd_trade_order_process_inc(
     location '/warehouse/tms/dwd/dwd_order_process'
     tblproperties('orc.compress' = 'snappy');
 
+
+
 set hive.exec.dynamic.partition.mode=nonstrict;
 insert overwrite table dwd_trade_order_process_inc
     partition (dt)
@@ -1274,7 +1304,7 @@ select cargo.id,
        dt,
        date_format(order_time, 'yyyy-MM-dd') start_date,
        end_date,
-       end_date                              dt
+       dt
 from (select after.id,
              after.order_id,
              after.cargo_type,
@@ -1347,10 +1377,14 @@ from (select after.id,
         and is_deleted = '0') dic_for_payment_type
      on info.payment_type = cast(dic_for_payment_type.id as string);
 
-select *
-from dwd_trade_order_process_inc;
 
--- 9.10 物流域运输完成事务事实表 ---------------------------------------------------------------------------------------------
+select * from dwd_trade_order_process_inc;
+
+
+
+-- 9.10 物流域运输完成事务事实表
+-- dwd_trans_trans_finish_inc
+
 drop table if exists dwd_trans_trans_finish_inc;
 create external table dwd_trans_trans_finish_inc(
                                                     `id` bigint comment '运输任务ID',
@@ -1379,9 +1413,11 @@ create external table dwd_trans_trans_finish_inc(
     location '/warehouse/tms/dwd/dwd_trans_trans_finish_inc'
     tblproperties('orc.compress' = 'snappy');
 
+
+
 set hive.exec.dynamic.partition.mode=nonstrict;
 insert overwrite table dwd_trans_trans_finish_inc
-    partition (dt)
+    partition (dt="20250718")
 select info.id,
        shift_id,
        line_id,
@@ -1401,7 +1437,6 @@ select info.id,
        estimated_time estimate_end_time,
        actual_distance,
        finish_dur_sec,
-       ds,
        dt
 from (select after.id,
              after.shift_id,
@@ -1429,7 +1464,7 @@ from (select after.id,
              dt,
              date_format(from_utc_timestamp(
                                  cast(after.actual_end_time as bigint), 'UTC'),
-                         'yyyy-MM-dd')                                                                ds
+                         'yyyy-MM-dd')                                                                dt1
       from tms.ods_transport_task after
       where dt = '20250718'
         and after.is_deleted = '0'
@@ -1441,10 +1476,14 @@ from (select after.id,
       where dt = '20250718') dim_tb
      on info.shift_id = dim_tb.id;
 
-select *
-from dwd_trans_trans_finish_inc;
 
--- 9.11 中转域入库事务事实表 ---------------------------------------------------------------------------------------------
+select * from dwd_trans_trans_finish_inc;
+
+
+
+-- 9.11 中转域入库事务事实表
+-- dwd_bound_inbound_inc
+
 drop table if exists dwd_bound_inbound_inc;
 create external table dwd_bound_inbound_inc(
                                                `id` bigint COMMENT '中转记录ID',
@@ -1458,6 +1497,8 @@ create external table dwd_bound_inbound_inc(
     location '/warehouse/tms/dwd/dwd_bound_inbound_inc'
     tblproperties('orc.compress' = 'snappy');
 
+
+
 set hive.exec.dynamic.partition.mode=nonstrict;
 insert overwrite table dwd_bound_inbound_inc
     partition (dt)
@@ -1468,16 +1509,17 @@ select after.id,
                            cast(after.inbound_time as bigint), 'UTC'),
                    'yyyy-MM-dd HH:mm:ss') inbound_time,
        after.inbound_emp_id,
-       date_format(from_utc_timestamp(
-                           cast(after.inbound_time as bigint), 'UTC'),
-                   'yyyy-MM-dd')          dt
+       dt
 from tms.ods_order_org_bound after
 where dt = '20250718';
 
-select *
-from dwd_bound_inbound_inc;
 
--- 9.12 中转域分拣事务事实表 ---------------------------------------------------------------------------------------------
+select * from dwd_bound_inbound_inc;
+
+
+-- 9.12 中转域分拣事务事实表
+-- dwd_bound_sort_inc
+
 drop table if exists dwd_bound_sort_inc;
 create external table dwd_bound_sort_inc(
                                             `id` bigint COMMENT '中转记录ID',
@@ -1491,6 +1533,7 @@ create external table dwd_bound_sort_inc(
     location '/warehouse/tms/dwd/dwd_bound_sort_inc'
     tblproperties('orc.compress' = 'snappy');
 
+
 set hive.exec.dynamic.partition.mode=nonstrict;
 insert overwrite table dwd_bound_sort_inc
     partition (dt)
@@ -1501,17 +1544,17 @@ select after.id,
                            cast(after.sort_time as bigint), 'UTC'),
                    'yyyy-MM-dd HH:mm:ss') sort_time,
        after.sorter_emp_id,
-       date_format(from_utc_timestamp(
-                           cast(after.sort_time as bigint), 'UTC'),
-                   'yyyy-MM-dd')          dt
+       dt
 from tms.ods_order_org_bound after
 where dt = '20250718'
   and after.sort_time is not null;
 
-select *
-from dwd_bound_sort_inc;
+select * from dwd_bound_sort_inc;
 
--- 9.13 中转域出库事务事实表 ---------------------------------------------------------------------------------------------
+
+
+-- 9.13 中转域出库事务事实表
+-- dwd_bound_outbound_inc
 drop table if exists dwd_bound_outbound_inc;
 create external table dwd_bound_outbound_inc(
                                                 `id` bigint COMMENT '中转记录ID',
@@ -1525,6 +1568,8 @@ create external table dwd_bound_outbound_inc(
     location '/warehouse/tms/dwd/dwd_bound_outbound_inc'
     tblproperties('orc.compress' = 'snappy');
 
+
+
 set hive.exec.dynamic.partition.mode=nonstrict;
 insert overwrite table dwd_bound_outbound_inc
     partition (dt)
@@ -1535,12 +1580,9 @@ select after.id,
                            cast(after.outbound_time as bigint), 'UTC'),
                    'yyyy-MM-dd HH:mm:ss') outbound_time,
        after.outbound_emp_id,
-       date_format(from_utc_timestamp(
-                           cast(after.outbound_time as bigint), 'UTC'),
-                   'yyyy-MM-dd')          dt
+       dt
 from tms.ods_order_org_bound after
 where dt = '20250718'
   and after.outbound_time is not null;
 
-select *
-from dwd_bound_outbound_inc;
+select * from dwd_bound_outbound_inc;

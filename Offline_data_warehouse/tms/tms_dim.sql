@@ -1,29 +1,28 @@
-create database if not exists tms_dim;
-
 use tms_dim;
 
--- 8.1 小区维度表 ---------------------------------------------------------------------------------------------
+-- 8.1 小区维度表
+-- dim_complex_full
+
 drop table if exists dim_complex_full;
 create external table dim_complex_full(
-          `id` bigint comment '小区ID',
-          `complex_name` string comment '小区名称',
-          `courier_emp_ids` array<string> comment '负责快递员IDS',
-          `province_id` bigint comment '省份ID',
-          `province_name` string comment '省份名称',
-          `city_id` bigint comment '城市ID',
-          `city_name` string comment '城市名称',
-          `district_id` bigint comment '区（县）ID',
-          `district_name` string comment '区（县）名称'
+                                          `id` bigint comment '小区ID',
+                                          `complex_name` string comment '小区名称',
+                                          `courier_emp_ids` array<string> comment '负责快递员IDS',
+                                          `province_id` bigint comment '省份ID',
+                                          `province_name` string comment '省份名称',
+                                          `city_id` bigint comment '城市ID',
+                                          `city_name` string comment '城市名称',
+                                          `district_id` bigint comment '区（县）ID',
+                                          `district_name` string comment '区（县）名称'
 ) comment '小区维度表'
     partitioned by (`dt` string comment '统计日期')
     stored as orc
     location '/warehouse/tms/dim/dim_complex_full'
     tblproperties('orc.compress'='snappy');
 
-
 insert overwrite table dim_complex_full
     partition (dt = '20250718')
-select complex_info.id   id,
+select complex_info.id   as id,
        complex_name,
        courier_emp_ids,
        province_id,
@@ -64,20 +63,23 @@ from (select id,
      ) complex_courier
      on complex_info.id = complex_courier.complex_id;
 
-select *
-from dim_complex_full;
+select * from dim_complex_full;
 
--- 8.2 机构维度表 ---------------------------------------------------------------------------------------------
+
+
+-- 8.2 机构维度表
+-- dim_organ_full
+
 drop table if exists dim_organ_full;
 create external table dim_organ_full(
-            `id` bigint COMMENT '机构ID',
-            `org_name` string COMMENT '机构名称',
-            `org_level` bigint COMMENT '机构等级（1为转运中心，2为转运站）',
-            `region_id` bigint COMMENT '地区ID，1级机构为city ,2级机构为district',
-            `region_name` string COMMENT '地区名称',
-            `region_code` string COMMENT '地区编码（行政级别）',
-            `org_parent_id` bigint COMMENT '父级机构ID',
-            `org_parent_name` string COMMENT '父级机构名称'
+                                        `id` bigint COMMENT '机构ID',
+                                        `org_name` string COMMENT '机构名称',
+                                        `org_level` bigint COMMENT '机构等级（1为转运中心，2为转运站）',
+                                        `region_id` bigint COMMENT '地区ID，1级机构为city ,2级机构为district',
+                                        `region_name` string COMMENT '地区名称',
+                                        `region_code` string COMMENT '地区编码（行政级别）',
+                                        `org_parent_id` bigint COMMENT '父级机构ID',
+                                        `org_parent_name` string COMMENT '父级机构名称'
 ) comment '机构维度表'
     partitioned by (`dt` string comment '统计日期')
     stored as orc
@@ -120,10 +122,12 @@ from (select id,
 ) org_for_parent
                    on organ_info.org_parent_id = org_for_parent.id;
 
-select *
-from dim_organ_full;
+select * from dim_organ_full;
 
--- 8.3 地区维度表 ---------------------------------------------------------------------------------------------
+
+-- 8.3 地区维度表
+-- dim_region_full
+
 drop table if exists dim_region_full;
 create external table dim_region_full(
                                          `id` bigint COMMENT '地区ID',
@@ -148,10 +152,13 @@ from tms.ods_base_region_info
 where dt = '20250718'
   and is_deleted = '0';
 
-select *
-from dim_region_full;
+select * from dim_region_full;
 
--- 8.4 快递员维度表 ---------------------------------------------------------------------------------------------
+
+-- 8.4 快递员维度表
+-- dim_express_courier_full
+
+
 drop table if exists dim_express_courier_full;
 create external table dim_express_courier_full(
                                                   `id` bigint COMMENT '快递员ID',
@@ -166,6 +173,7 @@ create external table dim_express_courier_full(
     stored as orc
     location '/warehouse/tms/dim/dim_express_courier_full'
     tblproperties('orc.compress'='snappy');
+
 
 insert overwrite table dim_express_courier_full
     partition (dt = '20250718')
@@ -201,10 +209,12 @@ from (select id,
 ) dic_info
               on express_type = dic_info.id;
 
-select *
-from dim_express_courier_full;
+select * from dim_express_courier_full;
 
--- 8.5 班次维度表 ---------------------------------------------------------------------------------------------
+
+-- 8.5 班次维度表
+-- dim_shift_full
+
 drop table if exists dim_shift_full;
 create external table dim_shift_full(
                                         `id` bigint COMMENT '班次ID',
@@ -233,6 +243,7 @@ create external table dim_shift_full(
     stored as orc
     location '/warehouse/tms/dim/dim_shift_full'
     tblproperties('orc.compress'='snappy');
+
 
 insert overwrite table dim_shift_full
     partition (dt = '20250718')
@@ -294,10 +305,15 @@ from (select id,
       and is_deleted = '0'
 ) dic_info on line_info.transport_line_type_id = dic_info.id;
 
-select *
-from dim_shift_full;
 
--- 8.6 司机维度表 ---------------------------------------------------------------------------------------------
+select * from dim_shift_full;
+
+
+
+
+-- 8.6 司机维度表
+-- dim_truck_driver_full
+
 drop table if exists dim_truck_driver_full;
 create external table dim_truck_driver_full(
                                                `id` bigint COMMENT '司机信息ID',
@@ -316,6 +332,7 @@ create external table dim_truck_driver_full(
     stored as orc
     location '/warehouse/tms/dim/dim_truck_driver_full'
     tblproperties('orc.compress'='snappy');
+
 
 insert overwrite table dim_truck_driver_full
     partition (dt = '20250718')
@@ -359,10 +376,13 @@ from (select id,
 ) team_info
               on driver_info.team_id = team_info.id;
 
-select *
-from dim_truck_driver_full;
 
--- 8.7 卡车维度表 ---------------------------------------------------------------------------------------------
+select * from dim_truck_driver_full;
+
+
+-- 8.7 卡车维度表
+-- dim_truck_full
+
 drop table if exists dim_truck_full;
 create external table dim_truck_full(
                                         `id` bigint COMMENT '卡车ID',
@@ -400,6 +420,8 @@ create external table dim_truck_full(
     stored as orc
     location '/warehouse/tms/dim/dim_truck_full'
     tblproperties('orc.compress'='snappy');
+
+
 
 insert overwrite table dim_truck_full
     partition (dt = '20250718')
@@ -503,10 +525,14 @@ from (select id,
         and is_deleted = '0') dic_for_brand
      on model_info.brand = dic_for_brand.id;
 
-select *
-from dim_truck_full;
 
--- 8.8 用户维度表 ---------------------------------------------------------------------------------------------
+select * from dim_truck_full;
+
+
+
+-- 8.8 用户维度表
+-- dim_user_zip
+
 drop table if exists dim_user_zip;
 create external table dim_user_zip(
                                       `id` bigint COMMENT '用户地址信息ID',
@@ -527,6 +553,7 @@ create external table dim_user_zip(
     location '/warehouse/tms/dim/dim_user_zip'
     tblproperties('orc.compress'='snappy');
 
+
 insert overwrite table dim_user_zip
     partition (dt = '20250718')
 select after.id,
@@ -543,16 +570,17 @@ select after.id,
        date_format(from_utc_timestamp(
                            cast(after.create_time as bigint), 'UTC'),
                    'yyyy-MM-dd')                                                                            start_date,
-       '20250718'                                                                                         end_date
+       '9999-12-31'                                                                                         end_date
 from tms.ods_user_info after
 where dt = '20250718'
   and after.is_deleted = '0';
 
-select *
-from dim_user_zip;
+select * from dim_user_zip;
 
 
--- 8.9 用户地址维度表 ---------------------------------------------------------------------------------------------
+-- 8.9 用户地址维度表
+-- dim_user_address_zip
+
 drop table if exists dim_user_address_zip;
 create external table dim_user_address_zip(
                                               `id` bigint COMMENT '地址ID',
@@ -572,6 +600,7 @@ create external table dim_user_address_zip(
     location '/warehouse/tms/dim/dim_user_address_zip'
     tblproperties('orc.compress'='snappy');
 
+
 insert overwrite table dim_user_address_zip
     partition (dt = '20250718')
 select after.id,
@@ -587,11 +616,10 @@ select after.id,
        after.is_default,
        concat(substr(after.create_time, 1, 10), ' ',
               substr(after.create_time, 12, 8)) start_date,
-       '20250718'                             end_date
+       '9999-12-31'                             end_date
 from tms.ods_user_address after
-where dt = '2023-01-10'
+where dt = '20250718'
   and after.is_deleted = '0';
 
-select *
-from dim_user_address_zip;
 
+select * from dim_user_address_zip;
