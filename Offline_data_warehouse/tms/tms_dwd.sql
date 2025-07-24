@@ -89,7 +89,7 @@ from (select ooc.id,
              concat(substr(ooc.create_time, 1, 10), ' ', substr(ooc.create_time, 12, 8)) order_time,
              dt
       from tms.ods_order_cargo ooc
-      where dt = '20250718'
+      where dt = '20250724'
         and ooc.is_deleted = '0') cargo
          left join
      (select after.id,
@@ -114,28 +114,28 @@ from (select ooc.id,
                          'yyyy-MM-dd HH:mm:ss')             estimate_arrive_time,
              after.distance
       from tms.ods_order_info after
-      where dt = '20250718'
+      where dt = '20250724'
         and after.is_deleted = '0') info
      on cargo.order_id = info.id
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_cargo_type
      on cargo.cargo_type = cast(dic_for_cargo_type.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_status
      on info.status = cast(dic_for_status.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_collect_type
      on info.collect_type = cast(dic_for_cargo_type.id as string);
 
@@ -234,7 +234,7 @@ from (select after.id,
              after.weight,
              dt
       from tms.ods_order_cargo after
-      where dt = '20250718'
+      where dt = '20250724'
         and after.is_deleted = '0') cargo
          join
      (select after.id,
@@ -261,7 +261,7 @@ from (select after.id,
              after.distance,
              concat(substr(after.update_time, 1, 10), ' ', substr(after.update_time, 12, 8)) payment_time
       from tms.ods_order_info after
-      where dt = '20250718'
+      where dt = '20250724'
         and after.is_deleted = '0'
         and after.status <> '60010'
         and after.status <> '60999') info
@@ -270,28 +270,28 @@ from (select after.id,
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_cargo_type
      on cargo.cargo_type = cast(dic_for_cargo_type.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_status
      on info.status = cast(dic_for_status.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_collect_type
      on info.collect_type = cast(dic_for_cargo_type.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_payment_type
      on info.payment_type = cast(dic_for_payment_type.id as string);
 
@@ -386,7 +386,7 @@ from (select after.id,
              after.weight,
              dt
       from tms.ods_order_cargo after
-      where dt = '20250718'
+      where dt = '20250724'
         and after.is_deleted = '0') cargo
          join
      (select after.id,
@@ -412,7 +412,7 @@ from (select after.id,
              after.distance,
              concat(substr(after.update_time, 1, 10), ' ', substr(after.update_time, 12, 8)) cancel_time
       from tms.ods_order_info after
-      where dt = '20250718'
+      where dt = '20250724'
         and after.is_deleted = '0'
      ) info
      on cargo.order_id = info.id
@@ -420,21 +420,21 @@ from (select after.id,
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_cargo_type
      on cargo.cargo_type = cast(dic_for_cargo_type.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_status
      on info.status = cast(dic_for_status.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_collect_type
      on info.collect_type = cast(dic_for_cargo_type.id as string);
 
@@ -531,7 +531,7 @@ from (select after.id,
              after.weight,
              dt
       from tms.ods_order_cargo after
-      where dt = '20250718'
+      where dt = '20250724'
         and after.is_deleted = '0') cargo
          join
      (select after.id,
@@ -558,7 +558,7 @@ from (select after.id,
              after.distance,
              concat(substr(after.update_time, 1, 10), ' ', substr(after.update_time, 12, 8)) receive_time
       from tms.ods_order_info after
-      where dt = '20250718'
+      where dt = '20250724'
         and after.is_deleted = '0'
         and after.status <> '60010'
         and after.status <> '60020'
@@ -568,28 +568,28 @@ from (select after.id,
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_cargo_type
      on cargo.cargo_type = cast(dic_for_cargo_type.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_status
      on info.status = cast(dic_for_status.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_collect_type
      on info.collect_type = cast(dic_for_cargo_type.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_payment_type
      on info.payment_type = cast(dic_for_payment_type.id as string);
 
@@ -688,7 +688,7 @@ from (select after.id,
              after.weight,
              dt
       from tms.ods_order_cargo after
-      where dt = '20250718'
+      where dt = '20250724'
         and after.is_deleted = '0') cargo
          join
      (select after.id,
@@ -715,7 +715,7 @@ from (select after.id,
              after.distance,
              concat(substr(after.update_time, 1, 10), ' ', substr(after.update_time, 12, 8)) dispatch_time
       from tms.ods_order_info after
-      where dt = '20250718'
+      where dt = '20250724'
         and after.is_deleted = '0'
         and after.status <> '60010'
         and after.status <> '60020'
@@ -727,28 +727,28 @@ from (select after.id,
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_cargo_type
      on cargo.cargo_type = cast(dic_for_cargo_type.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_status
      on info.status = cast(dic_for_status.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_collect_type
      on info.collect_type = cast(dic_for_cargo_type.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_payment_type
      on info.payment_type = cast(dic_for_payment_type.id as string);
 
@@ -845,7 +845,7 @@ from (select after.id,
              after.weight,
              dt
       from tms.ods_order_cargo after
-      where dt = '20250718'
+      where dt = '20250724'
         and after.is_deleted = '0') cargo
          join
      (select after.id,
@@ -872,34 +872,34 @@ from (select after.id,
              after.distance,
              concat(substr(after.update_time, 1, 10), ' ', substr(after.update_time, 12, 8)) bound_finish_time
       from tms.ods_order_info after
-      where dt = '20250718') info
+      where dt = '20250724') info
      on cargo.order_id = info.id
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_cargo_type
      on cargo.cargo_type = cast(dic_for_cargo_type.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_status
      on info.status = cast(dic_for_status.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_collect_type
      on info.collect_type = cast(dic_for_cargo_type.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_payment_type
      on info.payment_type = cast(dic_for_payment_type.id as string);
 
@@ -999,7 +999,7 @@ from (select after.id,
              after.weight,
              dt
       from tms.ods_order_cargo after
-      where dt = '20250718'
+      where dt = '20250724'
         and after.is_deleted = '0') cargo
          join
      (select after.id,
@@ -1026,7 +1026,7 @@ from (select after.id,
              after.distance,
              concat(substr(after.update_time, 1, 10), ' ', substr(after.update_time, 12, 8)) deliver_suc_time
       from tms.ods_order_info after
-      where dt = '20250718'
+      where dt = '20250724'
         and after.is_deleted = '0'
      ) info
      on cargo.order_id = info.id
@@ -1034,28 +1034,28 @@ from (select after.id,
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_cargo_type
      on cargo.cargo_type = cast(dic_for_cargo_type.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_status
      on info.status = cast(dic_for_status.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_collect_type
      on info.collect_type = cast(dic_for_cargo_type.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_payment_type
      on info.payment_type = cast(dic_for_payment_type.id as string);
 
@@ -1155,7 +1155,7 @@ from (select after.id,
              after.weight,
              dt
       from tms.ods_order_cargo after
-      where dt = '20250718'
+      where dt = '20250724'
         and after.is_deleted = '0') cargo
          join
      (select after.id,
@@ -1182,7 +1182,7 @@ from (select after.id,
              after.distance,
              concat(substr(after.update_time, 1, 10), ' ', substr(after.update_time, 12, 8)) sign_time
       from tms.ods_order_info after
-      where dt = '20250718'
+      where dt = '20250724'
         and after.is_deleted = '0'
      ) info
      on cargo.order_id = info.id
@@ -1190,28 +1190,28 @@ from (select after.id,
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_cargo_type
      on cargo.cargo_type = cast(dic_for_cargo_type.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_status
      on info.status = cast(dic_for_status.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_collect_type
      on info.collect_type = cast(dic_for_cargo_type.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_payment_type
      on info.payment_type = cast(dic_for_payment_type.id as string);
 
@@ -1315,7 +1315,7 @@ from (select after.id,
              concat(substr(after.create_time, 1, 10), ' ', substr(after.create_time, 12, 8)) order_time,
              dt
       from tms.ods_order_cargo after
-      where dt = '20250718'
+      where dt = '20250724'
         and after.is_deleted = '0') cargo
          join
      (select after.id,
@@ -1345,35 +1345,35 @@ from (select after.id,
                 concat(substr(after.update_time, 1, 10)),
                 '9999-12-31')                               end_date
       from tms.ods_order_info after
-      where dt = '20250718'
+      where dt = '20250724'
         and after.is_deleted = '0') info
      on cargo.order_id = info.id
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_cargo_type
      on cargo.cargo_type = cast(dic_for_cargo_type.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_status
      on info.status = cast(dic_for_status.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_collect_type
      on info.collect_type = cast(dic_for_cargo_type.id as string)
          left join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250718'
+      where dt = '20250724'
         and is_deleted = '0') dic_for_payment_type
      on info.payment_type = cast(dic_for_payment_type.id as string);
 
@@ -1417,7 +1417,7 @@ create external table dwd_trans_trans_finish_inc(
 
 set hive.exec.dynamic.partition.mode=nonstrict;
 insert overwrite table dwd_trans_trans_finish_inc
-    partition (dt="20250718")
+    partition (dt="20250724")
 select info.id,
        shift_id,
        line_id,
@@ -1466,14 +1466,14 @@ from (select after.id,
                                  cast(after.actual_end_time as bigint), 'UTC'),
                          'yyyy-MM-dd')                                                                dt1
       from tms.ods_transport_task after
-      where dt = '20250718'
+      where dt = '20250724'
         and after.is_deleted = '0'
         and after.actual_end_time is not null) info
          left join
      (select id,
              estimated_time
       from tms_dim.dim_shift_full
-      where dt = '20250718') dim_tb
+      where dt = '20250724') dim_tb
      on info.shift_id = dim_tb.id;
 
 
@@ -1511,7 +1511,7 @@ select after.id,
        after.inbound_emp_id,
        dt
 from tms.ods_order_org_bound after
-where dt = '20250718';
+where dt = '20250724';
 
 
 select * from dwd_bound_inbound_inc;
@@ -1546,7 +1546,7 @@ select after.id,
        after.sorter_emp_id,
        dt
 from tms.ods_order_org_bound after
-where dt = '20250718'
+where dt = '20250724'
   and after.sort_time is not null;
 
 select * from dwd_bound_sort_inc;
@@ -1582,7 +1582,7 @@ select after.id,
        after.outbound_emp_id,
        dt
 from tms.ods_order_org_bound after
-where dt = '20250718'
+where dt = '20250724'
   and after.outbound_time is not null;
 
 select * from dwd_bound_outbound_inc;
