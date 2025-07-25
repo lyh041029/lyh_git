@@ -21,7 +21,7 @@ create external table dim_complex_full(
     tblproperties('orc.compress'='snappy');
 
 insert overwrite table dim_complex_full
-    partition (dt = '20250724')
+    partition (dt = ${bizdate})
 select complex_info.id   as id,
        complex_name,
        courier_emp_ids,
@@ -38,27 +38,27 @@ from (select id,
              district_id,
              district_name
       from tms.ods_base_complex
-      where dt = '20250724'
+      where dt = ${bizdate}
         and is_deleted = '0') complex_info
          join
      (select id,
              name
       from tms.ods_base_region_info
-      where dt = '20250724'
+      where dt = ${bizdate}
         and is_deleted = '0') dic_for_prov
      on complex_info.province_id = dic_for_prov.id
          join
      (select id,
              name
       from tms.ods_base_region_info
-      where dt = '20250724'
+      where dt = ${bizdate}
         and is_deleted = '0') dic_for_city
      on complex_info.city_id = dic_for_city.id
          left join
      (select
           collect_set(cast(courier_emp_id as string)) courier_emp_ids,
           complex_id
-      from tms.ods_express_courier_complex where dt='20250724' and is_deleted='0'
+      from tms.ods_express_courier_complex where dt=${bizdate} and is_deleted='0'
       group by complex_id
      ) complex_courier
      on complex_info.id = complex_courier.complex_id;
@@ -87,7 +87,7 @@ create external table dim_organ_full(
     tblproperties('orc.compress'='snappy');
 
 insert overwrite table dim_organ_full
-    partition (dt = '20250724')
+    partition (dt = ${bizdate})
 select organ_info.id,
        organ_info.org_name,
        org_level,
@@ -102,14 +102,14 @@ from (select id,
              region_id,
              org_parent_id
       from tms.ods_base_organ
-      where dt = '20250724'
+      where dt = ${bizdate}
         and is_deleted = '0') organ_info
          left join (
     select id,
            name,
            dict_code
     from tms.ods_base_region_info
-    where dt = '20250724'
+    where dt = ${bizdate}
       and is_deleted = '0'
 ) region_info
                    on organ_info.region_id = region_info.id
@@ -117,7 +117,7 @@ from (select id,
     select id,
            org_name
     from tms.ods_base_organ
-    where dt = '20250724'
+    where dt = ${bizdate}
       and is_deleted = '0'
 ) org_for_parent
                    on organ_info.org_parent_id = org_for_parent.id;
@@ -142,14 +142,14 @@ create external table dim_region_full(
     tblproperties('orc.compress'='snappy');
 
 insert overwrite table dim_region_full
-    partition (dt = '20250724')
+    partition (dt = ${bizdate})
 select id,
        parent_id,
        name,
        dict_code,
        short_name
 from tms.ods_base_region_info
-where dt = '20250724'
+where dt = ${bizdate}
   and is_deleted = '0';
 
 select * from dim_region_full;
@@ -176,7 +176,7 @@ create external table dim_express_courier_full(
 
 
 insert overwrite table dim_express_courier_full
-    partition (dt = '20250724')
+    partition (dt = ${bizdate})
 select express_cor_info.id,
        emp_id,
        org_id,
@@ -190,13 +190,13 @@ from (select id,
              md5(working_phone) working_phone,
              express_type
       from tms.ods_express_courier
-      where dt = '20250724'
+      where dt = ${bizdate}
         and is_deleted = '0') express_cor_info
          join (
     select id,
            org_name
     from tms.ods_base_organ
-    where dt = '20250724'
+    where dt = ${bizdate}
       and is_deleted = '0'
 ) organ_info
               on express_cor_info.org_id = organ_info.id
@@ -204,7 +204,7 @@ from (select id,
     select id,
            name
     from tms.ods_base_dic
-    where dt = '20250724'
+    where dt = ${bizdate}
       and is_deleted = '0'
 ) dic_info
               on express_type = dic_info.id;
@@ -246,7 +246,7 @@ create external table dim_shift_full(
 
 
 insert overwrite table dim_shift_full
-    partition (dt = '20250724')
+    partition (dt = ${bizdate})
 select shift_info.id,
        line_id,
        line_info.name line_name,
@@ -276,7 +276,7 @@ from (select id,
              truck_id,
              pair_shift_id
       from tms.ods_line_base_shift
-      where dt = '20250724'
+      where dt = ${bizdate}
         and is_deleted = '0') shift_info
          join
      (select id,
@@ -294,14 +294,14 @@ from (select id,
              cost,
              estimated_time
       from tms.ods_line_base_info
-      where dt = '20250724'
+      where dt = ${bizdate}
         and is_deleted = '0') line_info
      on shift_info.line_id = line_info.id
          join (
     select id,
            name
     from tms.ods_base_dic
-    where dt = '20250724'
+    where dt = ${bizdate}
       and is_deleted = '0'
 ) dic_info on line_info.transport_line_type_id = dic_info.id;
 
@@ -335,7 +335,7 @@ create external table dim_truck_driver_full(
 
 
 insert overwrite table dim_truck_driver_full
-    partition (dt = '20250724')
+    partition (dt = ${bizdate})
 select driver_info.id,
        emp_id,
        org_id,
@@ -357,13 +357,13 @@ from (select id,
              license_no,
              is_enabled
       from tms.ods_truck_driver
-      where dt = '20250724'
+      where dt = ${bizdate}
         and is_deleted = '0') driver_info
          join (
     select id,
            org_name
     from tms.ods_base_organ
-    where dt = '20250724'
+    where dt = ${bizdate}
       and is_deleted = '0'
 ) organ_info
               on driver_info.org_id = organ_info.id
@@ -371,7 +371,7 @@ from (select id,
     select id,
            name
     from tms.ods_truck_team
-    where dt = '20250724'
+    where dt = ${bizdate}
       and is_deleted = '0'
 ) team_info
               on driver_info.team_id = team_info.id;
@@ -424,7 +424,7 @@ create external table dim_truck_full(
 
 
 insert overwrite table dim_truck_full
-    partition (dt = '20250724')
+    partition (dt = ${bizdate})
 select truck_info.id,
        team_id,
        team_info.name     team_name,
@@ -468,7 +468,7 @@ from (select id,
              license_expire_date,
              is_enabled
       from tms.ods_truck_info
-      where dt = '20250724'
+      where dt = ${bizdate}
         and is_deleted = '0') truck_info
          join
      (select id,
@@ -478,7 +478,7 @@ from (select id,
 
              manager_emp_id
       from tms.ods_truck_team
-      where dt = '20250724'
+      where dt = ${bizdate}
         and is_deleted = '0') team_info
      on truck_info.team_id = team_info.id
          join
@@ -499,14 +499,14 @@ from (select id,
              max_speed,
              oil_vol
       from tms.ods_truck_model
-      where dt = '20250724'
+      where dt = ${bizdate}
         and is_deleted = '0') model_info
      on truck_info.truck_model_id = model_info.id
          join
      (select id,
              org_name
       from tms.ods_base_organ
-      where dt = '20250724'
+      where dt = ${bizdate}
         and is_deleted = '0'
      ) organ_info
      on org_id = organ_info.id
@@ -514,14 +514,14 @@ from (select id,
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250724'
+      where dt = ${bizdate}
         and is_deleted = '0') dic_for_type
      on model_info.model_type = dic_for_type.id
          join
      (select id,
              name
       from tms.ods_base_dic
-      where dt = '20250724'
+      where dt = ${bizdate}
         and is_deleted = '0') dic_for_brand
      on model_info.brand = dic_for_brand.id;
 
@@ -555,7 +555,7 @@ create external table dim_user_zip(
 
 
 insert overwrite table dim_user_zip
-    partition (dt = '20250724')
+    partition (dt = ${bizdate})
 select after.id,
        after.login_name,
        after.nick_name,
@@ -572,7 +572,7 @@ select after.id,
                    'yyyy-MM-dd')                                                                            start_date,
        '9999-12-31'                                                                                         end_date
 from tms.ods_user_info after
-where dt = '20250724'
+where dt = ${bizdate}
   and after.is_deleted = '0';
 
 select * from dim_user_zip;
@@ -602,7 +602,7 @@ create external table dim_user_address_zip(
 
 
 insert overwrite table dim_user_address_zip
-    partition (dt = '20250724')
+    partition (dt = ${bizdate})
 select after.id,
        after.user_id,
        md5(if(after.phone regexp
@@ -618,7 +618,7 @@ select after.id,
               substr(after.create_time, 12, 8)) start_date,
        '9999-12-31'                             end_date
 from tms.ods_user_address after
-where dt = '20250724'
+where dt = ${bizdate}
   and after.is_deleted = '0';
 
 
