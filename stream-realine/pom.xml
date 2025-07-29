@@ -9,14 +9,13 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>stream-realtime</artifactId>
+    <artifactId>stream-realine</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
     <repositories>
         <repository>
             <id>cloudera</id>
@@ -26,11 +25,6 @@
 
     <dependencies>
 
-        <dependency>
-            <groupId>groupId</groupId>
-            <artifactId>lyh_git</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
 
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -63,6 +57,26 @@
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-sql-connector-hive-2.3.9_2.12</artifactId>
             <version>1.17.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.ververica</groupId>
+            <artifactId>flink-connector-sqlserver-cdc</artifactId>
+            <version>2.4.1</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- 例如排除冲突的 Kafka 依赖 -->
+        <dependency>
+            <groupId>com.ververica</groupId>
+            <artifactId>flink-connector-sqlserver-cdc</artifactId>
+            <version>2.4.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.kafka</groupId>
+                    <artifactId>kafka-clients</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -338,9 +352,6 @@
                     <execution>
                         <id>make-assembly</id>
                         <phase>package</phase>
-                        <goals>
-                            <goal>assembly</goal>
-                        </goals>
                     </execution>
                 </executions>
             </plugin>

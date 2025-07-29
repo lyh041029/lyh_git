@@ -14,17 +14,16 @@ date = "20250717"
 
 spark.sql("use gmall_dim;")
 
-
 #------------------------------------------------ dim_sku_full
 spark.sql(f"""
     with sku as (
     select
         *
     from gmall.ods_sku_info
-    where dt={date}
+    where dt={date}    
 ),
      spu as(
-         select
+         select        
              *
          from gmall.ods_spu_info
          where dt={date}
