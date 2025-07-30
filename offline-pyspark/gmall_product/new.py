@@ -10,6 +10,12 @@ spark = SparkSession.builder \
     .config("spark.sql.shuffle.partitions", "20") \
     .getOrCreate()
 
+# 在创建 SparkSession 之后，写入表之前添加以下代码
+# 创建 dws 数据库（如果不存在）
+spark.sql("CREATE DATABASE IF NOT EXISTS dws")
+# 创建 ads 数据库（如果代码中用到了 ads 库）
+spark.sql("CREATE DATABASE IF NOT EXISTS ads")
+
 # 1. ODS层：原始数据读取（模拟100万+条数据）
 # 定义 schema
 ods_schema = StructType([
@@ -88,5 +94,6 @@ ads_top_module = dws_module_click \
 dws_page_agg.write.mode("overwrite").saveAsTable("dws.dws_page_traffic_agg")
 ads_page_trend.write.mode("overwrite").saveAsTable("ads.ads_page_trend")
 ads_top_module.write.mode("overwrite").saveAsTable("ads.ads_top_module")
+
 
 spark.stop()
