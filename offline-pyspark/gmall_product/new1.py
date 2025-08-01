@@ -7,13 +7,22 @@ from pyspark.sql.window import Window
 from pyspark.sql.types import *
 import datetime
 
-# 1. 初始化SparkSession
 spark = SparkSession.builder \
     .appName("电商数仓-流量主题店内路径看板") \
-    .config("spark.sql.shuffle.partitions", "200") \
+    .config("spark.sql.shuffle.partitions", "20") \
+    .config("spark.driver.extraJavaOptions", r"-Djava.library.path=E:\hadoop\hadoop-3.2.0\bin") \
     .master("local[*]") \
     .enableHiveSupport() \
     .getOrCreate()
+
+# 1. 初始化SparkSession
+# spark = SparkSession.builder \
+#     .appName("电商数仓-流量主题店内路径看板") \
+#     .config("spark.sql.shuffle.partitions", "200") \
+#     .master("local[*]") \
+#     .enableHiveSupport() \
+#     .getOrCreate()
+
 
 # 2. 定义数据schema（基于文档中无线端/PC端数据需求）
 ods_schema = StructType([
