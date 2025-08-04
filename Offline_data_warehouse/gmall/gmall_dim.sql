@@ -472,3 +472,11 @@ from gmall.ods_user_info;
 
 
 select * from dim_user_zip;
+
+
+
+SELECT
+    region,
+    SUM(sales) AS total_sales
+FROM sales
+GROUP BY region;

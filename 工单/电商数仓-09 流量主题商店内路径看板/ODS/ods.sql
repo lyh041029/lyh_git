@@ -16,6 +16,6 @@ CREATE TABLE if not exists ods_shop_page_access_log
     create_time   DATETIME   DEFAULT CURRENT_TIMESTAMP COMMENT '日志生成时间'
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 COMMENT '店内路径原始访问日志表';
-
+-
 select * from ods_shop_page_access_log;
 
