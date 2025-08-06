@@ -180,7 +180,7 @@ if __name__ == "__main__":
         .getOrCreate()
 
     config = {
-        'host': '192.168.142.130',
+        'host': 'cdh03',
         'port': 3306,
         'user': 'root',
         'password': 'root',
