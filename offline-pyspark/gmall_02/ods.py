@@ -17,7 +17,7 @@ spark = SparkSession.builder \
 java_import(spark.sparkContext._gateway.jvm, "org.apache.hadoop.fs.Path")
 java_import(spark.sparkContext._gateway.jvm, "org.apache.hadoop.fs.FileSystem")
 fs = spark.sparkContext._jvm.FileSystem.get(spark.sparkContext._jsc.hadoopConfiguration())
-spark.sql("USE gmall_09")
+spark.sql("USE gmall_02")
 
 # 工具函数
 def create_hdfs_dir(path):
@@ -29,8 +29,8 @@ def create_hdfs_dir(path):
         print(f"HDFS目录已存在：{path}")
 
 def repair_hive_table(table_name):
-    spark.sql(f"MSCK REPAIR TABLE gmall_09.{table_name}")
-    print(f"修复分区完成：gmall_09.{table_name}")
+    spark.sql(f"MSCK REPAIR TABLE gmall_02.{table_name}")
+    print(f"修复分区完成：gmall_02.{table_name}")
 
 def print_data_count(df, table_name):
     count = df.count()
@@ -38,10 +38,10 @@ def print_data_count(df, table_name):
     return count
 
 # ====================== 商品销售原始表 ods_goods_sales ======================
-create_hdfs_dir("/warehouse/work_order/gmall_09/ods/ods_goods_sales")
-spark.sql("DROP TABLE IF EXISTS gmall_09.ods_goods_sales")
+create_hdfs_dir("/warehouse/work_order/gmall_02/ods/ods_goods_sales")
+spark.sql("DROP TABLE IF EXISTS gmall_02.ods_goods_sales")
 spark.sql("""
-CREATE EXTERNAL TABLE gmall_09.ods_goods_sales (
+CREATE EXTERNAL TABLE gmall_02.ods_goods_sales (
     goods_id STRING COMMENT '商品ID',
     goods_name STRING COMMENT '商品名称',
     category_id STRING COMMENT '分类ID',
@@ -57,12 +57,12 @@ CREATE EXTERNAL TABLE gmall_09.ods_goods_sales (
 ) 
 PARTITIONED BY (dt STRING COMMENT '数据日期')
 STORED AS ORC
-LOCATION '/warehouse/work_order/gmall_09/ods/ods_goods_sales'
+LOCATION '/warehouse/work_order/gmall_02/ods/ods_goods_sales'
 TBLPROPERTIES ('orc.compress' = 'snappy');
 """)
 
 # 读取数据源并写入
-csv_path = "hdfs://cdh01:8020/warehouse/work_order/gmall_09/data/ods_goods_sales.csv"
+csv_path = "hdfs://cdh01:8020/warehouse/work_order/gmall_02/data/ods_goods_sales.csv"
 df = spark.read.csv(
     csv_path,
     header=True,
@@ -71,16 +71,16 @@ df = spark.read.csv(
 )
 df_with_partition = df.withColumn("dt", F.date_format(F.col("sales_time"), "yyyyMMdd"))
 df_with_partition.write.mode("overwrite").partitionBy("dt").orc(
-    "/warehouse/work_order/gmall_09/ods/ods_goods_sales"
+    "/warehouse/work_order/gmall_02/ods/ods_goods_sales"
 )
 print_data_count(df, "ods_goods_sales")
 repair_hive_table("ods_goods_sales")
 
 # ====================== 商品流量来源原始表 ods_goods_traffic ======================
-create_hdfs_dir("/warehouse/work_order/gmall_09/ods/ods_goods_traffic")
-spark.sql("DROP TABLE IF EXISTS gmall_09.ods_goods_traffic")
+create_hdfs_dir("/warehouse/work_order/gmall_02/ods/ods_goods_traffic")
+spark.sql("DROP TABLE IF EXISTS gmall_02.ods_goods_traffic")
 spark.sql("""
-CREATE EXTERNAL TABLE gmall_09.ods_goods_traffic (
+CREATE EXTERNAL TABLE gmall_02.ods_goods_traffic (
     goods_id STRING COMMENT '商品ID',
     traffic_source STRING COMMENT '流量来源（效果广告/手淘搜索等）',
     visitor_num INT COMMENT '来源访客数',
@@ -90,11 +90,11 @@ CREATE EXTERNAL TABLE gmall_09.ods_goods_traffic (
 ) 
 PARTITIONED BY (dt STRING COMMENT '数据日期')
 STORED AS ORC
-LOCATION '/warehouse/work_order/gmall_09/ods/ods_goods_traffic'
+LOCATION '/warehouse/work_order/gmall_02/ods/ods_goods_traffic'
 TBLPROPERTIES ('orc.compress' = 'snappy');
 """)
 
-csv_path = "hdfs://cdh01:8020/warehouse/work_order/gmall_09/data/ods_goods_traffic.csv"
+csv_path = "hdfs://cdh01:8020/warehouse/work_order/gmall_02/data/ods_goods_traffic.csv"
 df = spark.read.csv(
     csv_path,
     header=True,
@@ -103,16 +103,16 @@ df = spark.read.csv(
 )
 df_with_partition = df.withColumn("dt", F.date_format(F.col("traffic_time"), "yyyyMMdd"))
 df_with_partition.write.mode("overwrite").partitionBy("dt").orc(
-    "/warehouse/work_order/gmall_09/ods/ods_goods_traffic"
+    "/warehouse/work_order/gmall_02/ods/ods_goods_traffic"
 )
 print_data_count(df, "ods_goods_traffic")
 repair_hive_table("ods_goods_traffic")
 
 # ====================== 商品搜索词原始表 ods_goods_search ======================
-create_hdfs_dir("/warehouse/work_order/gmall_09/ods/ods_goods_search")
-spark.sql("DROP TABLE IF EXISTS gmall_09.ods_goods_search")
+create_hdfs_dir("/warehouse/work_order/gmall_02/ods/ods_goods_search")
+spark.sql("DROP TABLE IF EXISTS gmall_02.ods_goods_search")
 spark.sql("""
-CREATE EXTERNAL TABLE gmall_09.ods_goods_search (
+CREATE EXTERNAL TABLE gmall_02.ods_goods_search (
     goods_id STRING COMMENT '商品ID',
     search_word STRING COMMENT '搜索词',
     search_num INT COMMENT '搜索次数',
@@ -122,11 +122,11 @@ CREATE EXTERNAL TABLE gmall_09.ods_goods_search (
 ) 
 PARTITIONED BY (dt STRING COMMENT '数据日期')
 STORED AS ORC
-LOCATION '/warehouse/work_order/gmall_09/ods/ods_goods_search'
+LOCATION '/warehouse/work_order/gmall_02/ods/ods_goods_search'
 TBLPROPERTIES ('orc.compress' = 'snappy');
 """)
 
-csv_path = "hdfs://cdh01:8020/warehouse/work_order/gmall_09/data/ods_goods_search.csv"
+csv_path = "hdfs://cdh01:8020/warehouse/work_order/gmall_02/data/ods_goods_search.csv"
 df = spark.read.csv(
     csv_path,
     header=True,
@@ -135,16 +135,16 @@ df = spark.read.csv(
 )
 df_with_partition = df.withColumn("dt", F.date_format(F.col("search_time"), "yyyyMMdd"))
 df_with_partition.write.mode("overwrite").partitionBy("dt").orc(
-    "/warehouse/work_order/gmall_09/ods/ods_goods_search"
+    "/warehouse/work_order/gmall_02/ods/ods_goods_search"
 )
 print_data_count(df, "ods_goods_search")
 repair_hive_table("ods_goods_search")
 
 # ====================== 价格力商品原始表 ods_price_strength_goods ======================
-create_hdfs_dir("/warehouse/work_order/gmall_09/ods/ods_price_strength_goods")
-spark.sql("DROP TABLE IF EXISTS gmall_09.ods_price_strength_goods")
+create_hdfs_dir("/warehouse/work_order/gmall_02/ods/ods_price_strength_goods")
+spark.sql("DROP TABLE IF EXISTS gmall_02.ods_price_strength_goods")
 spark.sql("""
-CREATE EXTERNAL TABLE gmall_09.ods_price_strength_goods (
+CREATE EXTERNAL TABLE gmall_02.ods_price_strength_goods (
     goods_id STRING COMMENT '商品ID',
     price_strength_star INT COMMENT '价格力星级（1-5）',
     coupon_after_price DOUBLE COMMENT '普惠券后价',
@@ -158,11 +158,11 @@ CREATE EXTERNAL TABLE gmall_09.ods_price_strength_goods (
 ) 
 PARTITIONED BY (dt STRING COMMENT '数据日期')
 STORED AS ORC
-LOCATION '/warehouse/work_order/gmall_09/ods/ods_price_strength_goods'
+LOCATION '/warehouse/work_order/gmall_02/ods/ods_price_strength_goods'
 TBLPROPERTIES ('orc.compress' = 'snappy');
 """)
 
-csv_path = "hdfs://cdh01:8020/warehouse/work_order/gmall_09/data/ods_price_strength_goods.csv"
+csv_path = "hdfs://cdh01:8020/warehouse/work_order/gmall_02/data/ods_price_strength_goods.csv"
 df = spark.read.csv(
     csv_path,
     header=True,
@@ -171,7 +171,7 @@ df = spark.read.csv(
 )
 df_with_partition = df.withColumn("dt", F.date_format(F.col("check_time"), "yyyyMMdd"))
 df_with_partition.write.mode("overwrite").partitionBy("dt").orc(
-    "/warehouse/work_order/gmall_09/ods/ods_price_strength_goods"
+    "/warehouse/work_order/gmall_02/ods/ods_price_strength_goods"
 )
 print_data_count(df, "ods_price_strength_goods")
 repair_hive_table("ods_price_strength_goods")

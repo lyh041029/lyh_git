@@ -1,193 +1,208 @@
 import pandas as pd
 import numpy as np
+import random
 from datetime import datetime, timedelta
-import mysql.connector  # 替换sqlite3为mysql连接库
-from mysql.connector import Error
 
-# --------------------------
-# 1. 生成模拟数据（与原代码一致）
-# --------------------------
-# 生成模拟数据的时间范围（近30天）
-end_date = datetime(2025, 1, 25)
-start_date = end_date - timedelta(days=29)
-dates = pd.date_range(start=start_date, end=end_date).strftime("%Y-%m-%d").tolist()
+# 设置随机种子，确保数据可复现
+np.random.seed(42)
+random.seed(42)
 
-# 1. 生成商品基础数据（100个商品）
-product_ids = [f"P{str(i).zfill(3)}" for i in range(1, 101)]
-categories = ["零食", "美妆", "服饰", "家电", "数码"]
-products = pd.DataFrame({
-    "product_id": product_ids,
-    "product_name": [f"商品{i}" for i in range(1, 101)],
-    "category": np.random.choice(categories, 100),
-    "price": np.random.uniform(10, 500, 100).round(2),
-    "is_price_strength": np.random.choice([True, False], 100, p=[0.3, 0.7])  # 30%为价格力商品
-})
+# -------------------------- 基础配置 --------------------------
+# 生成数据量（每张表10000条）
+DATA_SIZE = 10000
 
-# 2. 生成商品销售数据（按天）
-sales_data = []
-for pid in product_ids:
-    for date in dates:
-        visitors = np.random.randint(100, 1000)  # 访客数100-1000
-        pay_users = np.random.randint(5, int(visitors*0.3))  # 支付买家数5-30%访客
-        sales_cnt = np.random.randint(pay_users, pay_users*5)  # 销量（1-5件/买家）
-        sales_amt = sales_cnt * products[products["product_id"]==pid]["price"].values[0]
-        sales_data.append({
-            "product_id": pid,
-            "stat_date": date,
-            "sales_amt": round(sales_amt, 2),
-            "sales_cnt": sales_cnt,
-            "pay_users": pay_users,
-            "visitors": visitors,
-            "pay_conv_rate": round(pay_users / visitors, 4)
+# 日期范围（最近30天，用于生成时间字段）
+start_date = datetime.now() - timedelta(days=30)
+dates = [start_date + timedelta(days=i) for i in range(30)]
+
+# 公共基础数据（多表复用，保证关联性）
+categories = [
+    {"id": "c1001", "name": "电子产品"},
+    {"id": "c1002", "name": "服装鞋帽"},
+    {"id": "c1003", "name": "家居用品"},
+    {"id": "c1004", "name": "食品饮料"},
+    {"id": "c1005", "name": "图书音像"}
+]
+shops = [f"shop{i:04d}" for i in range(1, 21)]  # 20个店铺ID
+all_goods_ids = [f"goods{i:06d}" for i in range(DATA_SIZE)]  # 生成10000个唯一商品ID
+
+
+# -------------------------- 1. 生成ods_goods_sales --------------------------
+def generate_ods_goods_sales():
+    data = []
+    for i in range(DATA_SIZE):
+        # 随机选择商品分类
+        category = random.choice(categories)
+        # 商品基本信息
+        goods_id = all_goods_ids[i]  # 复用全局商品ID
+        goods_name = f"{category['name']}_商品_{i % 100 + 1}"  # 按分类生成名称
+
+        # SKU信息（根据分类动态生成）
+        colors = ["红色", "蓝色", "黑色", "白色", "绿色"]
+        if category["id"] == "c1001":  # 电子产品用存储容量
+            sizes = ["16G", "32G", "64G", "128G", "256G"]
+        elif category["id"] == "c1002":  # 服装用尺码
+            sizes = ["S", "M", "L", "XL", "XXL"]
+        else:  # 其他分类用通用规格
+            sizes = ["小", "中", "大", "特大", "定制"]
+        sku_info = f"{random.choice(colors)}_{random.choice(sizes)}"
+
+        # 销售数据（合理范围随机生成）
+        pay_amount = round(random.uniform(9.9, 5000.0), 2)  # 支付金额
+        pay_num = random.randint(1, 200)  # 支付件数
+        pay_buyer_num = random.randint(1, pay_num)  # 支付买家数（不超过件数）
+        visitor_num = random.randint(pay_buyer_num, pay_buyer_num * 50)  # 访客数（多于买家）
+
+        # 销售时间（随机日期+随机小时）
+        sales_time = random.choice(dates) + timedelta(
+            hours=random.randint(8, 23),
+            minutes=random.randint(0, 59)
+        )
+
+        data.append({
+            "goods_id": goods_id,
+            "goods_name": goods_name,
+            "category_id": category["id"],
+            "category_name": category["name"],
+            "sku_id": f"sku{i:08d}",  # 唯一SKU ID
+            "sku_info": sku_info,
+            "pay_amount": pay_amount,
+            "pay_num": pay_num,
+            "pay_buyer_num": pay_buyer_num,
+            "visitor_num": visitor_num,
+            "sales_time": sales_time.strftime("%Y-%m-%d %H:%M:%S"),  # 符合TIMESTAMP格式
+            "shop_id": random.choice(shops)
         })
-sales_df = pd.DataFrame(sales_data)
+    return pd.DataFrame(data)
 
-# 3. 生成流量来源数据（Top10来源）
-sources = ["效果广告", "站外广告", "内容广告", "手淘搜索",
-           "购物车", "我的淘宝", "手淘推荐", "品牌广告"]
-traffic_data = []
-for pid in product_ids:
-    for date in dates:
-        for source in np.random.choice(sources, 8, replace=False):  # 每天随机8个来源
-            visitors = np.random.randint(10, 200)
-            pay_conv = round(np.random.uniform(0.01, 0.2), 4)
-            traffic_data.append({
-                "product_id": pid, "stat_date": date, "source_name": source,
-                "visitors": visitors, "pay_conv_rate": pay_conv
-            })
-traffic_df = pd.DataFrame(traffic_data)
 
-# 4. 生成SKU销售数据（每个商品3-5个SKU）
-sku_data = []
-for pid in product_ids:
-    sku_count = np.random.randint(3, 6)
-    skus = [f"SKU{pid}{i}" for i in range(1, sku_count+1)]
-    colors = ["红色", "蓝色", "黑色", "白色", "黄色"]
-    for sku in skus:
-        for date in dates:
-            pay_cnt = np.random.randint(5, 50)
-            stock = np.random.randint(100, 500)
-            stock_days = round(stock / (pay_cnt + 1), 1)  # 避免除0
-            sku_data.append({
-                "product_id": pid, "sku_id": sku, "stat_date": date,
-                "color": np.random.choice(colors),
-                "pay_cnt": pay_cnt, "stock_cnt": stock, "stock_days": stock_days
-            })
-sku_df = pd.DataFrame(sku_data)
+# -------------------------- 2. 生成ods_goods_traffic --------------------------
+def generate_ods_goods_traffic():
+    data = []
+    traffic_sources = [
+        "效果广告", "手淘搜索", "京东搜索", "拼多多推荐",
+        "抖音直播", "快手短视频", "微信小程序", "微博推广", "朋友推荐"
+    ]
+    for _ in range(DATA_SIZE):
+        goods_id = random.choice(all_goods_ids)  # 随机关联商品ID
+        source = random.choice(traffic_sources)
+        visitor_num = random.randint(10, 1000)  # 来源访客数
+        pay_conversion_rate = round(random.uniform(0.005, 0.2), 4)  # 转化率（0.5%-20%）
 
-# 5. 生成搜索词数据（每个商品每天10个搜索词）
-search_words = ["轩妈家", "零食", "美妆", "优惠", "新品", "热销",
-                "正品", "折扣", "推荐", "爆款", "好用", "便宜"]
-search_data = []
-for pid in product_ids:
-    for date in dates:
-        for word in np.random.choice(search_words, 10, replace=False):
-            visitors = np.random.randint(20, 300)
-            search_data.append({
-                "product_id": pid, "stat_date": date, "search_word": word,
-                "visitors": visitors
-            })
-search_df = pd.DataFrame(search_data)
+        # 流量时间
+        traffic_time = random.choice(dates) + timedelta(
+            hours=random.randint(7, 24),
+            minutes=random.randint(0, 59)
+        )
 
-# 6. 生成价格力商品数据（仅针对is_price_strength=True的商品）
-price_strength_data = []
-price_products = products[products["is_price_strength"]]["product_id"].values
-for pid in price_products:
-    for date in dates:
-        strength_star = np.random.randint(1, 6)
-        coupon_price = round(products[products["product_id"]==pid]["price"].values[0] * 0.9, 2)
-        price_strength_data.append({
-            "product_id": pid, "stat_date": date,
-            "strength_star": strength_star,
-            "coupon_price": coupon_price,
-            "is_low_strength": strength_star <= 2,  # 1-2星为低价格力预警
-            "is_low_power": np.random.choice([True, False], p=[0.2, 0.8])  # 20%概率低商品力
+        data.append({
+            "goods_id": goods_id,
+            "traffic_source": source,
+            "visitor_num": visitor_num,
+            "pay_conversion_rate": pay_conversion_rate,
+            "traffic_time": traffic_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "shop_id": random.choice(shops)
         })
-price_strength_df = pd.DataFrame(price_strength_data)
+    return pd.DataFrame(data)
 
-# --------------------------
-# 2. 连接MySQL并写入数据（核心修改部分）
-# --------------------------
-try:
-    # 连接MySQL数据库（请替换为你的MySQL配置）
-    conn = mysql.connector.connect(
-        host="cdh03",        # MySQL服务器地址（默认localhost）
-        user="root",             # 用户名
-        password="root",       # 密码
-        database="gmall_02"  # 数据库名（需提前创建）
+
+# -------------------------- 3. 生成ods_goods_search --------------------------
+def generate_ods_goods_search():
+    data = []
+    search_words = [
+        # 按分类生成相关搜索词
+        "智能手机 新款", "笔记本电脑 轻薄", "无线耳机 降噪",  # 电子产品
+        "连衣裙 夏季", "牛仔裤 宽松", "运动鞋 透气",  # 服装鞋帽
+        "沙发 小户型", "保温杯 大容量", "台灯 护眼",  # 家居用品
+        "零食 礼盒", "咖啡 速溶", "牛奶 有机",  # 食品饮料
+        "悬疑小说 推荐", "考研英语 真题", "儿童绘本 3-6岁"  # 图书音像
+    ]
+    for _ in range(DATA_SIZE):
+        goods_id = random.choice(all_goods_ids)  # 关联商品ID
+        search_word = random.choice(search_words)
+        search_num = random.randint(5, 500)  # 搜索次数
+        visitor_num = random.randint(1, search_num)  # 搜索访客数（不超过搜索次数）
+
+        # 搜索时间
+        search_time = random.choice(dates) + timedelta(
+            hours=random.randint(9, 22),
+            minutes=random.randint(0, 59)
+        )
+
+        data.append({
+            "goods_id": goods_id,
+            "search_word": search_word,
+            "search_num": search_num,
+            "visitor_num": visitor_num,
+            "search_time": search_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "shop_id": random.choice(shops)
+        })
+    return pd.DataFrame(data)
+
+
+# -------------------------- 4. 生成ods_price_strength_goods --------------------------
+def generate_ods_price_strength_goods():
+    data = []
+    for _ in range(DATA_SIZE):
+        goods_id = random.choice(all_goods_ids)  # 关联商品ID
+        price_strength_star = random.randint(1, 5)  # 价格力星级（1-5）
+        coupon_after_price = round(random.uniform(5.0, 3000.0), 2)  # 券后价
+
+        # 转化率（市场平均、当前、上期）
+        market_avg_conversion = round(random.uniform(0.01, 0.15), 4)  # 1%-15%
+        current_conversion = round(
+            market_avg_conversion * random.uniform(0.5, 1.5), 4  # 当前转化率围绕市场平均波动
+        )
+        last_conversion = round(
+            current_conversion * random.uniform(0.8, 1.2), 4  # 上期转化率围绕当前波动
+        )
+
+        # 其他字段
+        is_high_price = random.randint(0, 1)  # 是否高价（0/1）
+        low_star_days = random.randint(0, 15) if price_strength_star <= 3 else 0  # 低星天数（仅低星商品有）
+
+        # 检查时间
+        check_time = random.choice(dates) + timedelta(
+            hours=random.randint(10, 18),
+            minutes=random.randint(0, 59)
+        )
+
+        data.append({
+            "goods_id": goods_id,
+            "price_strength_star": price_strength_star,
+            "coupon_after_price": coupon_after_price,
+            "market_avg_conversion": market_avg_conversion,
+            "current_conversion": current_conversion,
+            "last_conversion": last_conversion,
+            "is_high_price": is_high_price,
+            "low_star_days": low_star_days,
+            "check_time": check_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "shop_id": random.choice(shops)
+        })
+    return pd.DataFrame(data)
+
+
+# -------------------------- 生成并保存数据 --------------------------
+if __name__ == "__main__":
+    # 生成4张表的数据
+    df_sales = generate_ods_goods_sales()
+    df_traffic = generate_ods_goods_traffic()
+    df_search = generate_ods_goods_search()
+    df_price = generate_ods_price_strength_goods()
+
+    # 保存为制表符分隔的CSV（无索引，带表头，符合spark.read.csv参数）
+    output_dir = "./gmall_data/"  # 输出目录（可自行修改）
+    import os
+    os.makedirs(output_dir, exist_ok=True)
+
+    df_sales.to_csv(
+        f"{output_dir}/ods_goods_sales.csv",
+        sep='\t',  # 制表符分隔
+        index=False,  # 不保留索引
+        header=True  # 保留表头
     )
+    df_traffic.to_csv(f"{output_dir}/ods_goods_traffic.csv", sep='\t', index=False, header=True)
+    df_search.to_csv(f"{output_dir}/ods_goods_search.csv", sep='\t', index=False, header=True)
+    df_price.to_csv(f"{output_dir}/ods_price_strength_goods.csv", sep='\t', index=False, header=True)
 
-    if conn.is_connected():
-        cursor = conn.cursor()
-
-        # 注意：MySQL中表名和字段名建议用小写，避免大小写敏感问题
-        # 写入商品基础信息表（dim_product）
-        products.to_sql(
-            name="dim_product",
-            con=conn,
-            if_exists="replace",  # 若表存在则替换
-            index=False,
-            method="multi"  # 批量插入，提高效率
-        )
-        print("dim_product表数据写入完成")
-
-        # 写入商品销售数据表（dws_product_sales）
-        sales_df.to_sql(
-            name="dws_product_sales",
-            con=conn,
-            if_exists="replace",
-            index=False,
-            method="multi"
-        )
-        print("dws_product_sales表数据写入完成")
-
-        # 写入流量来源表（dws_traffic_source）
-        traffic_df.to_sql(
-            name="dws_traffic_source",
-            con=conn,
-            if_exists="replace",
-            index=False,
-            method="multi"
-        )
-        print("dws_traffic_source表数据写入完成")
-
-        # 写入SKU销售表（dws_sku_sales）
-        sku_df.to_sql(
-            name="dws_sku_sales",
-            con=conn,
-            if_exists="replace",
-            index=False,
-            method="multi"
-        )
-        print("dws_sku_sales表数据写入完成")
-
-        # 写入搜索词表（dws_search_word）
-        search_df.to_sql(
-            name="dws_search_word",
-            con=conn,
-            if_exists="replace",
-            index=False,
-            method="multi"
-        )
-        print("dws_search_word表数据写入完成")
-
-        # 写入价格力商品表（dws_price_strength）
-        price_strength_df.to_sql(
-            name="dws_price_strength",
-            con=conn,
-            if_exists="replace",
-            index=False,
-            method="multi"
-        )
-        print("dws_price_strength表数据写入完成")
-
-        conn.commit()  # 提交事务
-
-except Error as e:
-    print(f"MySQL连接或写入错误：{e}")
-finally:
-    # 关闭连接
-    if conn.is_connected():
-        cursor.close()
-        conn.close()
-        print("MySQL连接已关闭")
+    print(f"数据生成完成，共4张表，每张表{DATA_SIZE}条数据，保存至：{output_dir}")
