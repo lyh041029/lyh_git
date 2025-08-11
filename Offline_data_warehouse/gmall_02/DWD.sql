@@ -1,6 +1,6 @@
-use sx_one_3;
+use gmall_02;
 -- 1.1 dwd_product（商品维度表，每日快照）
-set @dt = '20250805';
+set @dt = '20250808';
 
 drop table if exists dwd_product;
 CREATE TABLE dwd_product
@@ -81,7 +81,7 @@ SELECT order_id,
        @dt AS dt
 FROM ods_order
 WHERE pay_time IS NOT NULL
-  AND DATE(pay_time) = '20250805';
+  AND DATE(pay_time) = '20250808';
 
 
 select *
@@ -121,7 +121,7 @@ SELECT traffic_id,
        @dt AS dt
 FROM ods_traffic
 WHERE visitor_count > 0 -- 过滤无效访客数
-  AND DATE(visit_time) = '20250805';
+  AND DATE(visit_time) = '20250808';
 
 select *
 from dwd_traffic_detail;
@@ -156,7 +156,7 @@ SELECT inventory_id,
        update_time,
        @dt AS dt
 FROM ods_inventory
-WHERE DATE(update_time) = '20250805';
+WHERE DATE(update_time) = '20250808';
 
 select *
 from dwd_inventory_detail;

@@ -1,4 +1,4 @@
-use sx_one_3;
+use gmall_02;
 
 CREATE TABLE dws_product_sale_agg
 (
@@ -30,10 +30,10 @@ SELECT o.product_id,
        SUM(o.pay_quantity) AS total_quantity,
        SUM(o.buyer_count)  AS total_buyer_count,
        '7d'                AS stat_period,
-       '20250805'          AS dt
+       '20250808'          AS dt
 FROM dwd_order_detail o
-         JOIN dwd_product p ON o.product_id = p.product_id AND p.dt = '20250805'
-WHERE o.dt BETWEEN DATE_SUB('20250805', INTERVAL 6 DAY) AND '20250805' -- MySQL中用DATE_SUB处理日期
+         JOIN dwd_product p ON o.product_id = p.product_id AND p.dt = '20250808'
+WHERE o.dt BETWEEN DATE_SUB('20250808', INTERVAL 6 DAY) AND '20250808' -- MySQL中用DATE_SUB处理日期
 GROUP BY o.product_id, p.category_id;
 
 
@@ -75,10 +75,10 @@ SELECT t.product_id,
                           ELSE (SUM(o.buyer_count) / SUM(t.visitor_count)) * 100
                           END, 2), '%') AS pay_conversion_rate,
        COALESCE(t.search_word, '')      AS search_word,
-       '20250805'                       AS dt
+       '20250808'                       AS dt
 FROM dwd_traffic_detail t
-         LEFT JOIN dwd_order_detail o ON t.product_id = o.product_id AND o.dt = '20250805'
-WHERE t.dt = '20250805'
+         LEFT JOIN dwd_order_detail o ON t.product_id = o.product_id AND o.dt = '20250808'
+WHERE t.dt = '20250808'
 GROUP BY t.product_id, t.source, COALESCE(t.search_word, '');
 
 
@@ -118,11 +118,11 @@ SELECT p.product_id,
            WHEN (REPLACE(MAX(t.pay_conversion_rate), '%', '') + 0) < 5
                AND RAND() < 0.08 THEN 1
            ELSE 0 END                                                              AS is_product_warn,
-       '20250805'                                                                  AS dt
+       '20250808'                                                                  AS dt
 FROM dwd_product p
          LEFT JOIN dws_product_traffic_agg t
-                   ON p.product_id = t.product_id AND t.dt = '20250805'
-WHERE p.dt = '20250805'
+                   ON p.product_id = t.product_id AND t.dt = '20250808'
+WHERE p.dt = '20250808'
 -- 核心：按product_id分组，强制每个商品只保留一条记录
 GROUP BY p.product_id;
 

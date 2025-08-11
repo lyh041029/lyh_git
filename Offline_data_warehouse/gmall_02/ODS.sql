@@ -1,6 +1,6 @@
-create database if not exists sx_one_3;
+create database if not exists gmall_02;
 
-use sx_one_3;
+use gmall_02;
 
 
 -- ODS层商品基础信息表：存储商品ID、分类、价格力星级等基础数据

@@ -1,4 +1,4 @@
-use sx_one_3;
+use gmall_02;
 
 
 -- 3.1 ads_product_ranking（商品排行榜，文档核心需求）
@@ -30,7 +30,7 @@ SELECT
     @sales_rank := @sales_rank + 1 AS sales_rank,
     @quantity_rank := @quantity_rank + 1 AS quantity_rank,
     main_query.stat_period,
-    '20250805'
+    '20250808'
 FROM
     (
         -- 主查询：确保包含所有需要的字段
@@ -44,9 +44,9 @@ FROM
         FROM
             dws_product_sale_agg s
                 INNER JOIN
-            dwd_product p ON s.product_id = p.product_id AND p.dt = '20250805'
+            dwd_product p ON s.product_id = p.product_id AND p.dt = '20250808'
         WHERE
-                s.stat_period = '7d' AND s.dt = '20250805'
+                s.stat_period = '7d' AND s.dt = '20250808'
         ORDER BY
             s.total_sales DESC,  -- 按销售额排序
             s.total_quantity DESC  -- 按销量排序
@@ -85,7 +85,7 @@ SELECT
     -- 保留百分比格式，将计算结果转换为字符串并添加百分号
     CONCAT(ROUND(avg_conversion, 2), '%') AS pay_conversion_rate,
     @rank := @rank + 1 AS rank_num,
-    '20250805' AS dt
+    '20250808' AS dt
 FROM (
          -- 聚合计算基础数据，先将带百分号的字符串转换为数值计算平均值
          SELECT
@@ -94,7 +94,7 @@ FROM (
              -- 处理带百分号的字符串，转换为数值后计算平均值
              AVG(REPLACE(pay_conversion_rate, '%', '') + 0) AS avg_conversion
          FROM dws_product_traffic_agg
-         WHERE dt = '20250805'
+         WHERE dt = '20250808'
          GROUP BY source
          ORDER BY total_visitor DESC
          LIMIT 10
@@ -128,9 +128,9 @@ SELECT
     product_id,
     '价格力预警' AS warn_type,
     price_strength_star,
-    '20250805' AS dt
+    '20250808' AS dt
 FROM dws_price_strength_agg
-WHERE is_price_warn = 1 AND dt = '20250805'
+WHERE is_price_warn = 1 AND dt = '20250808'
 
 UNION ALL
 
@@ -139,9 +139,9 @@ SELECT
     product_id,
     '商品力预警' AS warn_type,
     price_strength_star,
-    '20250805' AS dt
+    '20250808' AS dt
 FROM dws_price_strength_agg
-WHERE is_product_warn = 1 AND dt = '20250805';
+WHERE is_product_warn = 1 AND dt = '20250808';
 
 
 select * from ads_price_strength_warn ;
