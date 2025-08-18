@@ -1,5 +1,6 @@
 package com.stream.common.utils;
 
+import com.alibaba.fastjson.JSONObject;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 
 import java.time.Duration;

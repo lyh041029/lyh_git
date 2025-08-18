@@ -34,6 +34,14 @@
         <cdh.dep.version>3.0.0-cdh6.3.2</cdh.dep.version>
     </properties>
 
+    <repositories>
+        <!-- 其他仓库 -->
+        <repository>
+            <id>cloudera</id>
+            <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+        </repository>
+    </repositories>
+
     <dependencyManagement>
         <dependencies>
             <!-- flink 相关依赖 开始 -->
@@ -68,6 +76,12 @@
             </dependency>
 
             <!--        flink 本地WebUI 依赖-->
+            <dependency>
+                <groupId>org.apache.flink</groupId>
+                <artifactId>flink-runtime-web</artifactId>
+                <version>${flink.version}</version>
+                <scope>provided</scope>
+            </dependency>
 
             <!--        kafka 依赖-->
             <dependency>
@@ -248,15 +262,33 @@
             </dependency>
 
             <!-- parquet 文件格式相关依赖 开始 -->
+            <dependency>
+                <groupId>org.apache.parquet</groupId>
+                <artifactId>parquet-avro</artifactId>
+                <version>1.10.0</version>
+            </dependency>
 
+            <dependency>
+                <groupId>org.apache.parquet</groupId>
+                <artifactId>parquet-hadoop</artifactId>
+                <version>1.10.0</version>
+            </dependency>
 
-
+            <dependency>
+                <groupId>org.apache.flink</groupId>
+                <artifactId>flink-parquet</artifactId>
+                <version>1.8.0</version>
+            </dependency>
             <!-- parquet 文件格式相关依赖 结束 -->
 
             <!-- mysql 相关依赖 开始 -->
 
 
-
+            <dependency>
+                <groupId>commons-dbutils</groupId>
+                <artifactId>commons-dbutils</artifactId>
+                <version>1.7</version>
+            </dependency>
 
             <!-- mysql 相关依赖 结束 -->
         </dependencies>
@@ -332,4 +364,5 @@
             </resource>
         </resources>
     </build>
+
 </project>

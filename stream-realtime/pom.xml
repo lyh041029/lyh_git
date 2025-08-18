@@ -27,25 +27,25 @@
 
     <dependencies>
 
-        <dependency>
-            <groupId>groupId</groupId>
-            <artifactId>stream-common</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
 
+        <!-- Hadoop 核心依赖 -->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-hdfs-client</artifactId>
+            <artifactId>hadoop-common</artifactId>
             <version>${hadoop.version}</version>
-            <scope>provided</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
             <version>${hadoop.version}</version>
-            <scope>provided</scope>
         </dependency>
+
+
 
 
         <!--        flink 流批开发依赖包-->
@@ -407,5 +407,6 @@
             </resource>
         </resources>
     </build>
+
 
 </project>

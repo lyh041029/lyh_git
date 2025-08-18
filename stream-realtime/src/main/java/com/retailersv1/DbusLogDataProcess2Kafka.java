@@ -1,4 +1,4 @@
-package com.retailersv1.func;
+package com.retailersv1;
 
 import com.alibaba.fastjson.JSONObject;
 import com.retailersv1.func.ProcessSplitStreamFunc;
@@ -13,38 +13,49 @@ import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
+import org.apache.flink.runtime.state.memory.MemoryStateBackend;
 import org.apache.flink.streaming.api.datastream.*;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.OutputTag;
 
+
 import java.util.Date;
 import java.util.HashMap;
 
-/**
- * @BelongsProject: lyh_git
- * @BelongsPackage: com.retailersv1.func
- * @Author: liyuhuan
- * @CreateTime: 2025-08-15  15:56
- * @Description: TODO
- * @Version: 1.0
- */
+
 public class DbusLogDataProcess2Kafka {
+
+
     private static final String kafka_topic_base_log_data = ConfigUtils.getString("REALTIME.KAFKA.LOG.TOPIC");
+
     private static final String kafka_botstrap_servers = ConfigUtils.getString("kafka.bootstrap.servers");
+
     private static final String kafka_err_log = ConfigUtils.getString("kafka.err.log");
+
     private static final String kafka_start_log = ConfigUtils.getString("kafka.start.log");
+
     private static final String kafka_display_log = ConfigUtils.getString("kafka.display.log");
+
     private static final String kafka_action_log = ConfigUtils.getString("kafka.action.log");
+
     private static final String kafka_dirty_topic = ConfigUtils.getString("kafka.dirty.topic");
+
     private static final String kafka_page_topic = ConfigUtils.getString("kafka.page.topic");
+
     private static final OutputTag<String> errTag = new OutputTag<String>("errTag") {};
+
     private static final OutputTag<String> startTag = new OutputTag<String>("startTag") {};
+
     private static final OutputTag<String> displayTag = new OutputTag<String>("displayTag") {};
+
     private static final OutputTag<String> actionTag = new OutputTag<String>("actionTag") {};
+
     private static final OutputTag<String> dirtyTag = new OutputTag<String>("dirtyTag") {};
-    private static final HashMap<String,DataStream<String>> collectDsMap = new HashMap<>();
+
+    private static final HashMap<String, DataStream<String>> collectDsMap = new HashMap<>();
+
 
     @SneakyThrows
     public static void main(String[] args) {
@@ -65,13 +76,15 @@ public class DbusLogDataProcess2Kafka {
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         EnvironmentSettingUtils.defaultParameter(env);
+        env.setParallelism(1);
+        env.setStateBackend(new MemoryStateBackend());
 
         DataStreamSource<String> kafkaSourceDs = env.fromSource(
                 KafkaUtils.buildKafkaSource(
                         kafka_botstrap_servers,
                         kafka_topic_base_log_data,
                         new Date().toString(),
-                        OffsetsInitializer.latest()
+                        OffsetsInitializer.earliest()
                 ),
                 WatermarkStrategy.noWatermarks(),
                 "read_kafka_realtime_log"
@@ -134,7 +147,7 @@ public class DbusLogDataProcess2Kafka {
                             //	如果键控状态为 null，说明访问 APP 的是老访客但本次是该访客的页面日志首次进入程序。当前端新老访客状态标记丢失时，
                             // 日志进入程序被判定为新访客，Flink 程序就可以纠正被误判的访客状态标记，只要将状态中的日期设置为今天之前即可。本程序选择将状态更新为昨日；
                             if (StringUtils.isEmpty(lastVisitDate)) {
-                                String yesDay = DateTimeUtils.tsToDate(ts -  24 * 60 * 60 * 1000);
+                                String yesDay = DateTimeUtils.tsToDate(ts - 24 * 60 * 60 * 1000);
                                 lastVisitDateState.update(yesDay);
                             }
                         }
@@ -169,6 +182,7 @@ public class DbusLogDataProcess2Kafka {
         env.execute("Job-DbusLogDataProcess2Kafka");
     }
 
+
     public static void SplitDs2kafkaTopicMsg(HashMap<String,DataStream<String>> dataStreamHashMap){
 
         dataStreamHashMap.get("errTag").sinkTo(KafkaUtils.buildKafkaSink(kafka_botstrap_servers,kafka_err_log))
@@ -197,4 +211,7 @@ public class DbusLogDataProcess2Kafka {
         dataStreamHashMap.get("actionTag").print("actionTag ->");
         dataStreamHashMap.get("page").print("page ->");
     }
+
+
 }
+

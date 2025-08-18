@@ -2,7 +2,29 @@
 env=dev
 
 # MySQL
-mysql.host=42.51.0.222
+mysql.host=192.168.10.132
+mysql.port = 3306
+mysql.url = jdbc:mysql://cdh03:3306/realtime_v1?useSSL=false&serverTimezone=Asia/Shanghai
+mysql.timezone = Asia/Shanghai
+mysql.database = realtime_v1
+mysql.databases.conf = realtime_v1_config
+mysql.user = root
+mysql.pwd = root
 
 
-Kafka.bootstrap.servers=cdh04:9092,cdh05:9092,cdh06:9092
+# Kafka
+Kafka.bootstrap.servers = 192.168.10.130:9092,192.168.10.131:9092,192.168.10.132:9092
+REALTIME.KAFKA.LOG.TOPIC = realtime_log
+kafka.dirty.topic = dirty_log
+kafka.err.log = err_log
+kafka.start.log = start_log
+kafka.display.log = display_log
+kafka.action.log = action_log
+kafka.page.topic = ods_page_log
+kafka.cdc.db.topic = mysql-cdc-realtime-db-changes
+
+# Zookeeper
+zookeeper.server.host.list = 192.168.142.128:2181
+
+# Hbase
+hbase.namespace = dim
