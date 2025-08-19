@@ -66,7 +66,7 @@ public class DbusCdc2DimHbaseAnd2DbKafka {
                 .uid("mysql_cdc_to_kafka_topic")
                 .name("mysql_cdc_to_kafka_topic");
 
-        cdcDbMainStreamMap.print("cdcDbMainStreamMap -> ");
+//        cdcDbMainStreamMap.print("cdcDbMainStreamMap -> ");
 
 
 
@@ -94,7 +94,7 @@ public class DbusCdc2DimHbaseAnd2DbKafka {
                 .uid("map_create_hbase_dim_table")
                 .name("map_create_hbase_dim_table");
 
-
+        tpDS.print("cdcDbDimStreamMapCleanColumn -> ");
 
         MapStateDescriptor<String, JSONObject> mapStageDesc = new MapStateDescriptor<>("mapStageDesc", String.class, JSONObject.class);
         BroadcastStream<JSONObject> broadcastDs = tpDS.broadcast(mapStageDesc);

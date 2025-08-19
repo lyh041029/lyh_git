@@ -15,6 +15,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.print.Printable;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -68,7 +69,9 @@ public class HbaseUtils {
     }
 
     public boolean createTable(String nameSpace,String tableName, String... columnFamily) throws Exception {
+        System.out.println("111111111");
         boolean b = tableIsExists(tableName);
+        System.out.println(b);
         if (b) {
             return true;
         }
@@ -214,10 +217,11 @@ public class HbaseUtils {
     @SneakyThrows
     public static void main(String[] args) {
         System.setProperty("HADOOP_USER_NAME","root");
-        HbaseUtils hbaseUtils = new HbaseUtils("cdh01,cdh02,cdh03");
+        HbaseUtils hbaseUtils = new HbaseUtils("192.168.10.130:2181,192.168.10.131:2181,192.168.10.132:2181");
 //        hbaseUtils.dropHbaseNameSpace("GMALL_FLINK_2207");
 //        System.err.println(hbaseUtils.tableIsExists("realtime_v2:dim_user_info"));
-        hbaseUtils.deleteTable("ns_zxn:dim_base_category1");
+//        hbaseUtils.deleteTable("ns_zxn:dim_base_category1");
 //        hbaseUtils.getHbaseNameSpaceAllTablesList("realtime_v2");
+        System.out.println(hbaseUtils.tableIsExists("dim:dim_base_dic"));
     }
 }
