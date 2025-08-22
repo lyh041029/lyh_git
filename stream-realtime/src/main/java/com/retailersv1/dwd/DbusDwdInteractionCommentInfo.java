@@ -1,4 +1,4 @@
-package com.retailersv1;
+package com.retailersv1.dwd;
 
 import com.stream.common.utils.ConfigUtils;
 import com.stream.common.utils.EnvironmentSettingUtils;
@@ -7,7 +7,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
-public class DwdCommentAndDicSQL {
+public class DbusDwdInteractionCommentInfo {
     private static final String ODS_KAFKA_TOPIC = ConfigUtils.getString("kafka.cdc.db.topic");
     private static final String DWD_COMMENT_INFO = ConfigUtils.getString("kafka.dwd.comment.info");
 
@@ -19,15 +19,15 @@ public class DwdCommentAndDicSQL {
         StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
 
         // 1. 创建ODS层Kafka源表（消费评论表CDC数据）
-        tEnv.executeSql("CREATE TABLE ods_professional (\n" +
+        tEnv.executeSql("CREATE TABLE ods_ecommerce_order (\n" +
                 "  `op` STRING,\n" +
                 "  `before` MAP<STRING,STRING>,\n" +
                 "  `after` MAP<STRING,STRING>,\n" +
                 "  `source` MAP<STRING,STRING>,\n" +
                 "  `ts_ms` BIGINT,\n" +
                 "   proc_time AS proctime()" +
-                ")" + SqlUtil.getKafka(ODS_KAFKA_TOPIC, "test"));
-//        tEnv.executeSql("select * from ods_ecommerce_order where `source`['table'] = 'comment_info' ").print();
+                ")" + SqlUtil.getKafka(ODS_KAFKA_TOPIC, "first"));
+
 
 
 
@@ -39,9 +39,9 @@ public class DwdCommentAndDicSQL {
                 "`after`['comment_txt'] comment_txt,\n" +
                 "ts_ms,\n" +
                 "proc_time\n" +
-                "from ods_professional\n" +
+                "from ods_ecommerce_order\n" +
                 "where `source`['table'] = 'comment_info'");
-//        commentInfo.execute().print();
+
         // 将表对象注册到表执行环境中
         tEnv.createTemporaryView("comment_info", commentInfo);
 
@@ -51,7 +51,7 @@ public class DwdCommentAndDicSQL {
                 " info ROW<dic_name STRING>,\n" +
                 " PRIMARY KEY (dic_code) NOT ENFORCED\n" +
                 ")"+SqlUtil.getHbaseDDL("dim_base_dic"));
-//        tEnv.executeSql("select * from base_dic").print();
+
 
         // 将评论表和字典表进行关联
         Table joinTable = tEnv.sqlQuery("SELECT id,\n" +
@@ -64,7 +64,7 @@ public class DwdCommentAndDicSQL {
                 "FROM comment_info AS c\n" +
                 "  JOIN base_dic FOR SYSTEM_TIME AS OF c.proc_time AS dic\n" +
                 "    ON c.appraise = dic.dic_code");
-//        joinTable.execute().print();
+       //joinTable.execute().print();
 
 
         // 将关联后的表数据写入 kafka
@@ -78,10 +78,8 @@ public class DwdCommentAndDicSQL {
                 "      ts BIGINT,\n" +
                 "  PRIMARY KEY (id) NOT ENFORCED\n" +
                 ")"+SqlUtil.getUpsertKafkaDDL(DWD_COMMENT_INFO));
-// 6. 唯一触发点：写入目标表
+        // 6. 唯一触发点：写入目标表
         joinTable.executeInsert(DWD_COMMENT_INFO);
-
-
 
     }
 }
