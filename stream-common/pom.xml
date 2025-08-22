@@ -112,7 +112,7 @@
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-client</artifactId>
             <version>2.4.7</version>
-            <scope>provided</scope>
+            <scope>compile</scope>
         </dependency>
 
 
@@ -133,7 +133,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <program.scope>compile</program.scope>
+                <program.scope>provided</program.scope>
             </properties>
             <build>
                 <filters>

@@ -1,4 +1,4 @@
-package com.retailersv1;
+package com.retailersv1.dwd;
 
 import com.stream.common.utils.ConfigUtils;
 import com.stream.common.utils.EnvironmentSettingUtils;
@@ -10,12 +10,13 @@ import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
 import java.time.Duration;
 
-public class DwdReturnOrderInfoSQL {
+public class DbusDwdReturnOrderInfo {
     private static final String TOPIC_DB = ConfigUtils.getString("kafka.cdc.db.topic");
     private static final String DWD_RETURN_ORDER_INFO_TOPIC = ConfigUtils.getString("kafka.dwd.return.order.info");
 
     public static void main(String[] args) {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setParallelism(1);
         EnvironmentSettingUtils.defaultParameter(env);
 
 
@@ -42,7 +43,7 @@ public class DwdReturnOrderInfoSQL {
                 " PRIMARY KEY (dic_code) NOT ENFORCED\n" +
                 ")"+SqlUtil.getHbaseDDL("dim_base_dic"));
 
-//        tableEnv.executeSql("select * from base_dic").print();
+   //     tableEnv.executeSql("select * from base_dic").print();
 
         // 2. 过滤退单表数据 order_refund_info   insert
         Table orderRefundInfo = tableEnv.sqlQuery(
@@ -63,7 +64,7 @@ public class DwdReturnOrderInfoSQL {
                         "where `source`['table'] ='order_refund_info' ");
         tableEnv.createTemporaryView("order_refund_info", orderRefundInfo);
 
-//        orderRefundInfo.execute().print();
+     //   orderRefundInfo.execute().print();
 
         // 3. 过滤订单表中的退单数据: order_info  update
         Table orderInfo = tableEnv.sqlQuery(
@@ -71,13 +72,12 @@ public class DwdReturnOrderInfoSQL {
                         "`after`['id'] id," +
                         "`after`['province_id'] province_id " +
                         " from ods_professional " +
-                        "where `source`['table']='order_info' " +
-                        "and `before`['order_status'] is not null " +
-                        "and `after`['order_status']='1005' ");
+                        "where `source`['table']='order_info' ");
+     //   orderInfo.execute().print();
+
+
         tableEnv.createTemporaryView("order_info", orderInfo);
 
-//        orderInfo.execute().print();
-        // 4. join: 普通的和 lookup join
 
         Table result = tableEnv.sqlQuery(
                 "select " +
@@ -104,7 +104,7 @@ public class DwdReturnOrderInfoSQL {
                         "join base_dic for system_time as of ri.proc_time as dic2 " +
                         "on ri.refund_reason_type=dic2.dic_code ");
 
-//        result.execute().print();
+     //   result.execute().print();
 
         // 5. 写出到 kafka
         tableEnv.executeSql(
@@ -127,6 +127,7 @@ public class DwdReturnOrderInfoSQL {
                         "primary key(id) not enforced " +
                         ")" + SqlUtil.getUpsertKafkaDDL(DWD_RETURN_ORDER_INFO_TOPIC));
 
-//        result.executeInsert(DWD_RETURN_ORDER_INFO_TOPIC);
+        result.executeInsert(DWD_RETURN_ORDER_INFO_TOPIC);
+        System.out.println("ok");
     }
 }

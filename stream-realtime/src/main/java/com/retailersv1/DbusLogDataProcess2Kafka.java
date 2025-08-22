@@ -32,6 +32,8 @@ public class DbusLogDataProcess2Kafka {
 
     private static final String kafka_botstrap_servers = ConfigUtils.getString("kafka.bootstrap.servers");
 
+
+
     private static final String kafka_err_log = ConfigUtils.getString("kafka.err.log");
 
     private static final String kafka_start_log = ConfigUtils.getString("kafka.start.log");
