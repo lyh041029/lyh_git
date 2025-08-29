@@ -28,6 +28,7 @@ SUBSIDY_TYPES = ["normal", "100billion", "official_bid"]  # 普通、百亿补�
 # 方案1: 生成随机整数ID（如100000-999999之间）
 USER_ID_POOL = [fake.random_int(min=100000, max=999999) for _ in range(500)]
 
+
 # 方案2: 生成UUID格式的用户ID（如需要字符串类型ID可启用此方案）
 # USER_ID_POOL = [fake.uuid4() for _ in range(500)]
 
